@@ -200,6 +200,8 @@ h3 { font-size: 1.2rem; margin-top: 10px; margin-bottom: 15px; font-weight: 500;
 .locked h3 { color: var(--n-red); margin-top: 0; }
 .locked p { font-size: 1.3rem; font-weight: bold; margin-bottom: 0; }
 
+/* Indicador de Sincronización */
+#sync-status { text-align:center; font-size:0.7rem; color:#444; margin-top: 20px; }
 </style>
 </head>
 
@@ -213,7 +215,7 @@ h3 { font-size: 1.2rem; margin-top: 10px; margin-bottom: 15px; font-weight: 500;
             <p>Franco</p>
         </div>
         <div class="profile" onclick="startApp('jess')">
-            <img src="https://prodigits.co.uk/thumbs/wallpapers/p2/movies/31/76d1810b12631524.jpg" alt="Jess">
+            <img src="https://i.pinimg.com/originals/0d/dc/ca/0ddccae723d85a703b798a5e682c23c1.png" alt="Jess">
             <p>Jess</p>
         </div>
     </div>
@@ -265,6 +267,7 @@ h3 { font-size: 1.2rem; margin-top: 10px; margin-bottom: 15px; font-weight: 500;
             </div>
 
             <button class="btn-fin" onclick="lock()">TERMINAR CAPÍTULO</button>
+            <div id="sync-status">Sincronizado en tiempo real 🟢</div>
         </div>
 
         <div id="locked-ui" class="locked" style="display:none">
@@ -279,13 +282,13 @@ h3 { font-size: 1.2rem; margin-top: 10px; margin-bottom: 15px; font-weight: 500;
 // 🔥 CONFIGURA TU URL Y KEY AQUÍ
 const supa = supabase.createClient(
     'https://xgogmukydlcnznbphjns.supabase.co',
-    'TU_KEY_AQUI' // <-- Pega aquí tu KEY pública
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inhnb2dtdWt5ZGxjbnpuYnBoam5zIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYyNTE5NjQsImV4cCI6MjA5MTgyNzk2NH0.thIiVyTCwhXY-ZnZAWw3lx8WtagjnZmEjnCAv9N-biU' // <-- PON TU KEY PÚBLICA AQUÍ
 );
 
 let user = '';
 let currentSeriesId = '';
 let currentKey = '';
-let globalData = []; // Para no llamar a Supabase por cada click
+let globalData = []; 
 
 // Estructura con Temporadas
 const series = {
@@ -304,6 +307,28 @@ const series = {
     }
 };
 
+// --- TIEMPO REAL: LA MAGIA ---
+supa.channel('juego_en_vivo')
+  .on('postgres_changes', { event: '*', schema: 'public', table: 'game_state' }, payload => {
+    const newData = payload.new;
+    
+    // 1. Actualizar memoria local
+    const index = globalData.findIndex(d => d.id === newData.id);
+    if (index !== -1) globalData[index] = newData;
+    else globalData.push(newData);
+
+    // 2. Si estamos viendo la lista de capítulos, refrescarla sola
+    if (document.getElementById('episodes').classList.contains('active')) {
+        renderEpisodes();
+    }
+
+    // 3. Si estamos dentro del MISMO capítulo que el otro modificó, actualizar número
+    if (document.getElementById('scoring').classList.contains('active') && currentKey === newData.id) {
+        updatePointUI(newData);
+    }
+  })
+  .subscribe();
+
 // LOGIN
 function startApp(u) {
     user = u;
@@ -316,18 +341,6 @@ function startApp(u) {
     showView('home');
 }
 
-// CREAR REGISTRO SI NO EXISTE
-async function ensure(id) {
-    const ep = globalData.find(d => d.id === id);
-    if (!ep) {
-        await supa.from('game_state').insert({
-            id: id, franco_pts: 0, jess_pts: 0, is_locked: false
-        });
-        // Agregar a data local para no recargar
-        globalData.push({ id: id, franco_pts: 0, jess_pts: 0, is_locked: false });
-    }
-}
-
 // ABRIR SERIE Y SELECCIONAR TEMPORADA
 async function openSeries(id) {
     currentSeriesId = id;
@@ -336,7 +349,6 @@ async function openSeries(id) {
     const selector = document.getElementById('season-selector');
     selector.innerHTML = '';
     
-    // Llenar dropdown de temporadas
     Object.keys(series[id].seasons).forEach(season => {
         const option = document.createElement('option');
         option.value = season;
@@ -344,7 +356,7 @@ async function openSeries(id) {
         selector.appendChild(option);
     });
 
-    // Traer todos los datos de Supabase de una vez para mayor velocidad
+    // Traer datos rápido
     const { data } = await supa.from('game_state').select('*');
     if(data) globalData = data;
 
@@ -352,11 +364,9 @@ async function openSeries(id) {
     showView('episodes');
 }
 
-// RENDERIZAR LA LISTA DE EPISODIOS
-async function renderEpisodes() {
+// RENDERIZAR LA LISTA (Ahora no se congela al entrar)
+function renderEpisodes() {
     const list = document.getElementById('list');
-    list.innerHTML = '<div style="color:#888; padding:20px 0;">Cargando...</div>';
-    
     const id = currentSeriesId;
     const season = document.getElementById('season-selector').value;
     const eps = series[id].seasons[season];
@@ -364,11 +374,9 @@ async function renderEpisodes() {
     let htmlContent = '';
 
     for (let i = 0; i < eps.length; i++) {
-        // Generamos un ID único que incluye la temporada, quitando espacios
         const safeSeason = season.replace(/\s+/g, '');
         const key = `${id}-${safeSeason}-${i}`;
         
-        await ensure(key);
         const epData = globalData.find(d => d.id === key);
 
         let resText = '';
@@ -398,9 +406,23 @@ async function openScore(key, name) {
     const targetUser = user === 'franco' ? 'jess' : 'franco';
     document.getElementById('target').innerText = targetUser.toUpperCase();
 
-    // Consultamos la DB para asegurar datos frescos
-    const { data } = await supa.from('game_state').select('*').eq('id', key).single();
+    // Ver si ya existe en memoria, si no, crear base para ese cap
+    let data = globalData.find(d => d.id === key);
+    
+    if (!data) {
+        data = { id: key, franco_pts: 0, jess_pts: 0, is_locked: false };
+        globalData.push(data); // Añadir localmente
+        // Crear en DB sin bloquear la pantalla
+        supa.from('game_state').upsert(data).then(); 
+    }
 
+    updatePointUI(data);
+    showView('scoring');
+}
+
+// ACTUALIZAR PANTALLA DE PUNTOS
+function updatePointUI(data) {
+    const targetUser = user === 'franco' ? 'jess' : 'franco';
     document.getElementById('pts').innerText = data[`${targetUser}_pts`];
 
     if (data.is_locked) {
@@ -411,21 +433,29 @@ async function openScore(key, name) {
         document.getElementById('active-ui').style.display = 'block';
         document.getElementById('locked-ui').style.display = 'none';
     }
-
-    showView('scoring');
 }
 
 // SUMAR/RESTAR PUNTOS
 async function change(v) {
     let n = parseInt(document.getElementById('pts').innerText);
     n += v;
-    document.getElementById('pts').innerText = n;
+    document.getElementById('pts').innerText = n; // Cambio visual instantáneo
 
     const targetUser = user === 'franco' ? 'jess' : 'franco';
+    
+    // Rescatar data actual
+    let data = globalData.find(d => d.id === currentKey);
+    if (!data) data = { id: currentKey, franco_pts: 0, jess_pts: 0, is_locked: false };
+    
+    data[`${targetUser}_pts`] = n;
 
-    await supa.from('game_state')
-        .update({ [`${targetUser}_pts`]: n })
-        .eq('id', currentKey);
+    // Actualizar DB. El tiempo real le avisará a la otra persona sola
+    await supa.from('game_state').upsert({
+        id: currentKey,
+        franco_pts: data.franco_pts,
+        jess_pts: data.jess_pts,
+        is_locked: data.is_locked
+    });
 }
 
 // BLOQUEAR CAPÍTULO
@@ -435,7 +465,10 @@ async function lock() {
             .update({ is_locked: true })
             .eq('id', currentKey);
 
-        openScore(currentKey, document.getElementById('ep-name').innerText);
+        // Actualizamos nosotros mismos, el Tiempo Real le avisa al otro
+        let data = globalData.find(d => d.id === currentKey);
+        data.is_locked = true;
+        updatePointUI(data);
     }
 }
 
