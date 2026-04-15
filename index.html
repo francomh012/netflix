@@ -10,9 +10,6 @@
 <style>
 :root {
     --n-red:#E50914;
-    --n-black:#000;
-    --n-gray:#121212;
-    --n-white:#fff;
 }
 
 body {
@@ -29,13 +26,15 @@ body {
     flex-direction:column;
     justify-content:center;
     align-items:center;
+    transition:0.3s;
 }
 
 .profile-box { display:flex; gap:25px; }
 
 .profile { text-align:center; cursor:pointer; }
 .profile img {
-    width:90px; height:90px;
+    width:90px;
+    height:90px;
     border-radius:6px;
 }
 
@@ -112,7 +111,7 @@ header {
 <body>
 
 <!-- LOGIN -->
-<div id="login" class="view active">
+<div id="login">
 <h1>¿Quién está viendo?</h1>
 
 <div class="profile-box">
@@ -186,7 +185,7 @@ header {
 </div>
 
 <script>
-// SUPABASE
+// 🔥 CONFIGURA TU KEY AQUÍ
 const supa = supabase.createClient(
 'https://xgogmukydlcnznbphjns.supabase.co',
 'TU_KEY_AQUI'
@@ -200,11 +199,20 @@ boys:{ name:"Boys Over Flowers", eps:["Ep1","Ep2","Ep3","Ep4"] },
 stranger:{ name:"Stranger Things", eps:["Cap1","Cap2","Cap3"] }
 };
 
-// LOGIN
+// LOGIN ESTILO NETFLIX
 function startApp(u){
     user = u;
-    document.getElementById('u-name').innerText = u;
+
+    const login = document.getElementById('login');
+    login.style.opacity = '0';
+
+    setTimeout(() => {
+        login.style.display = 'none';
+    }, 300);
+
     document.getElementById('header').style.display='flex';
+    document.getElementById('u-name').innerText = u;
+
     showView('home');
 }
 
