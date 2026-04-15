@@ -2,319 +2,448 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Mini Netflix</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Netflix</title>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <style>
 :root {
-    --n-red:#E50914;
+    --n-red: #E50914;
+    --n-black: #000000;
+    --n-dark: #141414;
+    --n-gray: #808080;
 }
 
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
 body {
-    margin:0;
-    background:#000;
-    color:white;
-    font-family:Arial;
+    margin: 0;
+    background-color: var(--n-black);
+    color: white;
+    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    user-select: none;
 }
 
 /* LOGIN */
 #login {
-    height:100vh;
-    display:flex;
-    flex-direction:column;
-    justify-content:center;
-    align-items:center;
-    transition:0.3s;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    transition: opacity 0.4s ease;
+    background-color: var(--n-black);
+    z-index: 1000;
 }
 
-.profile-box { display:flex; gap:25px; }
+#login h1 { font-size: 1.8rem; font-weight: 400; margin-bottom: 30px; }
 
-.profile { text-align:center; cursor:pointer; }
+.profile-box { display: flex; gap: 30px; }
+
+.profile { text-align: center; cursor: pointer; transition: transform 0.2s; }
+.profile:active { transform: scale(0.95); }
 .profile img {
-    width:90px;
-    height:90px;
-    border-radius:6px;
+    width: 100px;
+    height: 100px;
+    border-radius: 4px;
+    object-fit: cover;
+    border: 2px solid transparent;
 }
+.profile:active img { border-color: white; }
+.profile p { color: var(--n-gray); margin-top: 10px; font-size: 1rem; }
 
 /* HEADER */
 header {
-    display:none;
-    padding:15px;
-    justify-content:space-between;
-    background:black;
-    border-bottom:1px solid #111;
+    display: none;
+    padding: 15px 5%;
+    justify-content: space-between;
+    align-items: center;
+    background: linear-gradient(to bottom, rgba(0,0,0,0.9) 0%, transparent 100%);
+    position: sticky;
+    top: 0;
+    z-index: 100;
 }
 
-.container { padding:15px; }
+.logo { color: var(--n-red); font-weight: bold; font-size: 1.5rem; letter-spacing: -1px; }
+.user-tag { font-size: 0.8rem; color: var(--n-gray); text-align: right; }
+.user-tag b { color: white; display: block; font-size: 0.9rem; }
 
-.view { display:none; }
-.active { display:block; }
+.container { padding: 0 5% 30px 5%; }
 
-/* GRID */
+.view { display: none; }
+.active { display: block; }
+
+/* GRID SERIES */
+h3 { font-size: 1.2rem; margin-top: 10px; margin-bottom: 15px; font-weight: 500; }
+
 .grid {
-    display:grid;
-    grid-template-columns:1fr 1fr;
-    gap:10px;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+}
+
+.card {
+    position: relative;
+    cursor: pointer;
+    border-radius: 4px;
+    overflow: hidden;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.6);
 }
 
 .card img {
-    width:100%;
-    border-radius:5px;
+    width: 100%;
+    height: auto;
+    display: block;
+}
+
+.badge {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    background-color: var(--n-red);
+    color: white;
+    font-size: 0.6rem;
+    font-weight: bold;
+    padding: 3px 6px;
+    border-radius: 3px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.5);
 }
 
 /* EPISODIOS */
-.ep-row {
-    padding:15px 0;
-    border-bottom:1px solid #222;
-    display:flex;
-    justify-content:space-between;
-    cursor:pointer;
+.back-btn {
+    padding: 15px 0;
+    color: #b3b3b3;
+    font-size: 1rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
 }
 
-/* PUNTOS */
+#title { font-size: 1.5rem; margin-bottom: 15px; }
+
+.season-select {
+    background: #333;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    font-size: 1rem;
+    border-radius: 4px;
+    margin-bottom: 20px;
+    width: 100%;
+    outline: none;
+}
+
+.ep-row {
+    padding: 18px 0;
+    border-bottom: 1px solid #222;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+}
+.ep-info { display: flex; flex-direction: column; gap: 4px; }
+.ep-name { font-size: 1rem; color: #fff; }
+.ep-res { font-size: 0.8rem; color: var(--n-gray); }
+
+/* SCORING */
+#ep-name { text-align: center; color: var(--n-gray); font-size: 1rem; font-weight: 400; margin-bottom: 30px; }
+
+#active-ui p { text-align: center; color: var(--n-gray); text-transform: uppercase; font-size: 0.8rem; letter-spacing: 1px; }
+#target { text-align: center; font-size: 2.5rem; margin-top: 0; letter-spacing: 2px; }
+
 .controls {
-    display:flex;
-    justify-content:center;
-    gap:20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 30px;
+    margin: 40px 0;
 }
 
 .btn {
-    width:60px;
-    height:60px;
-    border-radius:50%;
-    font-size:2rem;
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    font-size: 2.5rem;
+    background: #222;
+    color: white;
+    border: 1px solid #444;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
+.btn:active { background: var(--n-red); border-color: var(--n-red); }
 
-.num {
-    font-size:3rem;
-}
+.num { font-size: 4.5rem; font-weight: bold; width: 80px; text-align: center; }
 
 .btn-fin {
-    width:100%;
-    padding:15px;
-    margin-top:20px;
-    background:red;
-    color:white;
-    border:none;
+    width: 100%;
+    padding: 18px;
+    margin-top: 20px;
+    background: var(--n-red);
+    color: white;
+    border: none;
+    font-size: 1.1rem;
+    font-weight: bold;
+    border-radius: 4px;
 }
 
 .locked {
-    background:#111;
-    padding:20px;
-    text-align:center;
+    background: #111;
+    padding: 30px 20px;
+    text-align: center;
+    border-radius: 8px;
+    border: 1px solid #333;
+    margin-top: 20px;
 }
+.locked h3 { color: var(--n-red); margin-top: 0; }
+.locked p { font-size: 1.3rem; font-weight: bold; margin-bottom: 0; }
+
 </style>
 </head>
 
 <body>
 
-<!-- LOGIN -->
 <div id="login">
-<h1>¿Quién está viendo?</h1>
-
-<div class="profile-box">
-<div class="profile" onclick="startApp('franco')">
-<img src="https://upload.wikimedia.org/wikipedia/commons/0/0b/Netflix-avatar.png">
-<p>Franco</p>
+    <h1>¿Quién está viendo?</h1>
+    <div class="profile-box">
+        <div class="profile" onclick="startApp('franco')">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/0/0b/Netflix-avatar.png" alt="Franco">
+            <p>Franco</p>
+        </div>
+        <div class="profile" onclick="startApp('jess')">
+            <img src="https://prodigits.co.uk/thumbs/wallpapers/p2/movies/31/76d1810b12631524.jpg" alt="Jess">
+            <p>Jess</p>
+        </div>
+    </div>
 </div>
 
-<div class="profile" onclick="startApp('jess')">
-<img src="https://prodigits.co.uk/thumbs/wallpapers/p2/movies/31/76d1810b12631524.jpg">
-<p>Jess</p>
-</div>
-</div>
-</div>
-
-<!-- HEADER -->
 <header id="header">
-<div style="color:red;font-weight:bold">NETFLIX</div>
-<div>Usuario: <b id="u-name"></b></div>
+    <div class="logo">NETFLIX</div>
+    <div class="user-tag">Viendo como <b id="u-name"></b></div>
 </header>
 
 <div class="container">
 
-<!-- HOME -->
-<div id="home" class="view">
-<h3>Series</h3>
+    <div id="home" class="view">
+        <h3>Mi lista</h3>
+        <div class="grid">
+            <div class="card" onclick="openSeries('boys')">
+                <div class="badge">TERMINADA</div>
+                <img src="img/serie1.png" alt="Boys Over Flowers">
+            </div>
+            <div class="card" onclick="openSeries('stranger')">
+                <img src="img/serie2.jpg" alt="Stranger Things">
+            </div>
+        </div>
+    </div>
 
-<div class="grid">
-<div class="card" onclick="loadEps('boys')">
-<img src="img/serie1.png">
-</div>
+    <div id="episodes" class="view">
+        <div class="back-btn" onclick="showView('home')">← Volver a inicio</div>
+        <h2 id="title"></h2>
+        
+        <select id="season-selector" class="season-select" onchange="renderEpisodes()">
+            </select>
 
-<div class="card" onclick="loadEps('stranger')">
-<img src="img/serie2.jpg">
-</div>
-</div>
-</div>
+        <div id="list"></div>
+    </div>
 
-<!-- EPISODIOS -->
-<div id="episodes" class="view">
-<div onclick="showView('home')">← Volver</div>
-<h2 id="title"></h2>
-<div id="list"></div>
-</div>
+    <div id="scoring" class="view">
+        <div class="back-btn" onclick="showView('episodes')">← Volver a episodios</div>
+        
+        <h3 id="ep-name"></h3>
 
-<!-- SCORING -->
-<div id="scoring" class="view">
-<div onclick="showView('episodes')">← Volver</div>
+        <div id="active-ui">
+            <p>Dando puntos a:</p>
+            <h2 id="target"></h2>
 
-<h3 id="ep-name"></h3>
+            <div class="controls">
+                <button class="btn" onclick="change(-1)">-</button>
+                <div class="num" id="pts">0</div>
+                <button class="btn" onclick="change(1)">+</button>
+            </div>
 
-<div id="active-ui">
-<p>Puntos para:</p>
-<h2 id="target"></h2>
+            <button class="btn-fin" onclick="lock()">TERMINAR CAPÍTULO</button>
+        </div>
 
-<div class="controls">
-<button class="btn" onclick="change(-1)">-</button>
-<div class="num" id="pts">0</div>
-<button class="btn" onclick="change(1)">+</button>
-</div>
+        <div id="locked-ui" class="locked" style="display:none">
+            <h3>🔒 RESULTADO FINAL</h3>
+            <p id="result"></p>
+        </div>
+    </div>
 
-<button class="btn-fin" onclick="lock()">Finalizar</button>
-</div>
-
-<div id="locked-ui" class="locked" style="display:none">
-<h3>🔒 Cerrado</h3>
-<p id="result"></p>
-</div>
-
-</div>
 </div>
 
 <script>
-// 🔥 CONFIGURA TU KEY AQUÍ
+// 🔥 CONFIGURA TU URL Y KEY AQUÍ
 const supa = supabase.createClient(
-'https://xgogmukydlcnznbphjns.supabase.co',
-'TU_KEY_AQUI'
+    'https://xgogmukydlcnznbphjns.supabase.co',
+    'TU_KEY_AQUI' // <-- Pega aquí tu KEY pública
 );
 
 let user = '';
+let currentSeriesId = '';
 let currentKey = '';
+let globalData = []; // Para no llamar a Supabase por cada click
 
+// Estructura con Temporadas
 const series = {
-boys:{ name:"Boys Over Flowers", eps:["Ep1","Ep2","Ep3","Ep4"] },
-stranger:{ name:"Stranger Things", eps:["Cap1","Cap2","Cap3"] }
+    boys: { 
+        name: "Boys Over Flowers", 
+        seasons: {
+            "Temporada 1": ["Capítulo 1", "Capítulo 2", "Capítulo 3", "Capítulo 4", "Capítulo 5"]
+        }
+    },
+    stranger: { 
+        name: "Stranger Things", 
+        seasons: {
+            "Temporada 1": ["La desaparición de Will", "La loca de la calle Maple", "Todo está bien", "El cuerpo", "La pulga y el acróbata"],
+            "Temporada 2": ["Madmax", "Truco o trato", "El renacuajo", "Will el sabio"]
+        }
+    }
 };
 
-// LOGIN ESTILO NETFLIX
-function startApp(u){
+// LOGIN
+function startApp(u) {
     user = u;
-
     const login = document.getElementById('login');
     login.style.opacity = '0';
+    setTimeout(() => { login.style.display = 'none'; }, 400);
 
-    setTimeout(() => {
-        login.style.display = 'none';
-    }, 300);
-
-    document.getElementById('header').style.display='flex';
-    document.getElementById('u-name').innerText = u;
-
+    document.getElementById('header').style.display = 'flex';
+    document.getElementById('u-name').innerText = u.toUpperCase();
     showView('home');
 }
 
-// CREAR SI NO EXISTE
-async function ensure(id){
-    const {data} = await supa.from('game_state').select('*').eq('id',id).single();
-
-    if(!data){
+// CREAR REGISTRO SI NO EXISTE
+async function ensure(id) {
+    const ep = globalData.find(d => d.id === id);
+    if (!ep) {
         await supa.from('game_state').insert({
-            id:id,
-            franco_pts:0,
-            jess_pts:0,
-            is_locked:false
+            id: id, franco_pts: 0, jess_pts: 0, is_locked: false
         });
+        // Agregar a data local para no recargar
+        globalData.push({ id: id, franco_pts: 0, jess_pts: 0, is_locked: false });
     }
 }
 
-// CARGAR EPISODIOS
-async function loadEps(id){
-    showView('episodes');
-
+// ABRIR SERIE Y SELECCIONAR TEMPORADA
+async function openSeries(id) {
+    currentSeriesId = id;
     document.getElementById('title').innerText = series[id].name;
+    
+    const selector = document.getElementById('season-selector');
+    selector.innerHTML = '';
+    
+    // Llenar dropdown de temporadas
+    Object.keys(series[id].seasons).forEach(season => {
+        const option = document.createElement('option');
+        option.value = season;
+        option.innerText = season;
+        selector.appendChild(option);
+    });
+
+    // Traer todos los datos de Supabase de una vez para mayor velocidad
+    const { data } = await supa.from('game_state').select('*');
+    if(data) globalData = data;
+
+    renderEpisodes();
+    showView('episodes');
+}
+
+// RENDERIZAR LA LISTA DE EPISODIOS
+async function renderEpisodes() {
     const list = document.getElementById('list');
-    list.innerHTML='Cargando...';
+    list.innerHTML = '<div style="color:#888; padding:20px 0;">Cargando...</div>';
+    
+    const id = currentSeriesId;
+    const season = document.getElementById('season-selector').value;
+    const eps = series[id].seasons[season];
+    
+    let htmlContent = '';
 
-    const {data} = await supa.from('game_state').select('*');
-
-    list.innerHTML='';
-
-    for(let i=0;i<series[id].eps.length;i++){
-        const key = `${id}-${i}`;
+    for (let i = 0; i < eps.length; i++) {
+        // Generamos un ID único que incluye la temporada, quitando espacios
+        const safeSeason = season.replace(/\s+/g, '');
+        const key = `${id}-${safeSeason}-${i}`;
+        
         await ensure(key);
+        const epData = globalData.find(d => d.id === key);
 
-        const ep = data.find(d=>d.id===key);
-
-        let txt='';
-        if(ep?.is_locked){
-            txt=`(${ep.franco_pts}-${ep.jess_pts})`;
+        let resText = '';
+        if (epData?.is_locked) {
+            const winner = epData.franco_pts > epData.jess_pts ? 'Franco' : (epData.jess_pts > epData.franco_pts ? 'Jess' : 'Empate');
+            resText = `Ganó ${winner} (${epData.franco_pts} - ${epData.jess_pts})`;
         }
 
-        list.innerHTML+=`
-        <div class="ep-row" onclick="openScore('${key}','${series[id].eps[i]}')">
-            <span>${series[id].eps[i]} ${txt}</span>
-            <span>${ep?.is_locked?'🔒':'▶'}</span>
+        htmlContent += `
+        <div class="ep-row" onclick="openScore('${key}', '${eps[i]}')">
+            <div class="ep-info">
+                <span class="ep-name">${i + 1}. ${eps[i]}</span>
+                <span class="ep-res">${resText}</span>
+            </div>
+            <span style="color:var(--n-red); font-size:1.2rem;">${epData?.is_locked ? '🔒' : '▶'}</span>
         </div>`;
     }
+    
+    list.innerHTML = htmlContent;
 }
 
-// ABRIR
-async function openScore(key,name){
+// ABRIR CONTROL DE PUNTOS
+async function openScore(key, name) {
     currentKey = key;
-
     document.getElementById('ep-name').innerText = name;
 
-    const targetUser = user==='franco'?'jess':'franco';
-    document.getElementById('target').innerText = targetUser;
+    const targetUser = user === 'franco' ? 'jess' : 'franco';
+    document.getElementById('target').innerText = targetUser.toUpperCase();
 
-    const {data} = await supa.from('game_state').select('*').eq('id',key).single();
+    // Consultamos la DB para asegurar datos frescos
+    const { data } = await supa.from('game_state').select('*').eq('id', key).single();
 
-    document.getElementById('pts').innerText = data[targetUser+'_pts'];
+    document.getElementById('pts').innerText = data[`${targetUser}_pts`];
 
-    if(data.is_locked){
-        document.getElementById('active-ui').style.display='none';
-        document.getElementById('locked-ui').style.display='block';
-
-        document.getElementById('result').innerText =
-        `Franco ${data.franco_pts} - ${data.jess_pts} Jess`;
+    if (data.is_locked) {
+        document.getElementById('active-ui').style.display = 'none';
+        document.getElementById('locked-ui').style.display = 'block';
+        document.getElementById('result').innerText = `FRANCO ${data.franco_pts} - ${data.jess_pts} JESS`;
     } else {
-        document.getElementById('active-ui').style.display='block';
-        document.getElementById('locked-ui').style.display='none';
+        document.getElementById('active-ui').style.display = 'block';
+        document.getElementById('locked-ui').style.display = 'none';
     }
 
     showView('scoring');
 }
 
-// CAMBIAR
-async function change(v){
+// SUMAR/RESTAR PUNTOS
+async function change(v) {
     let n = parseInt(document.getElementById('pts').innerText);
     n += v;
-
     document.getElementById('pts').innerText = n;
 
-    const targetUser = user==='franco'?'jess':'franco';
+    const targetUser = user === 'franco' ? 'jess' : 'franco';
 
     await supa.from('game_state')
-    .update({[targetUser+'_pts']:n})
-    .eq('id',currentKey);
+        .update({ [`${targetUser}_pts`]: n })
+        .eq('id', currentKey);
 }
 
-// BLOQUEAR
-async function lock(){
-    await supa.from('game_state')
-    .update({is_locked:true})
-    .eq('id',currentKey);
+// BLOQUEAR CAPÍTULO
+async function lock() {
+    if(confirm("¿Seguros que quieren terminar este capítulo?")) {
+        await supa.from('game_state')
+            .update({ is_locked: true })
+            .eq('id', currentKey);
 
-    openScore(currentKey,document.getElementById('ep-name').innerText);
+        openScore(currentKey, document.getElementById('ep-name').innerText);
+    }
 }
 
-// VISTAS
-function showView(id){
-    document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+// NAVEGACIÓN
+function showView(id) {
+    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
     document.getElementById(id).classList.add('active');
+    window.scrollTo(0, 0);
 }
 </script>
 
