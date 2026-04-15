@@ -7,20 +7,20 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root { --n-red: #E50914; --n-black: #000000; --n-gray: #121212; --n-white: #FFFFFF; }
-        body { background-color: var(--n-black); color: var(--n-white); font-family: 'Helvetica Neue', Arial, sans-serif; margin: 0; padding: 0; user-select: none; }
+        body { background-color: var(--n-black); color: var(--n-white); font-family: 'Helvetica Neue', Arial, sans-serif; margin: 0; padding: 0; user-select: none; overflow-x: hidden; }
         
-        /* Pantalla Login */
+        /* Login */
         #login { height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; background: #000; }
         .profile-box { display: flex; gap: 25px; margin-top: 30px; }
-        .profile { text-align: center; cursor: pointer; transition: transform 0.2s; }
-        .profile img { width: 95px; height: 95px; border-radius: 4px; object-fit: cover; }
+        .profile { text-align: center; cursor: pointer; }
+        .profile img { width: 95px; height: 95px; border-radius: 4px; object-fit: cover; border: 2px solid transparent; }
         .profile p { margin-top: 8px; font-size: 0.9rem; color: #b3b3b3; }
-        .profile:active { transform: scale(0.9); }
+        .profile:active img { border-color: white; }
 
         /* UI Principal */
         header { padding: 15px 5%; display: flex; justify-content: space-between; align-items: center; background: #000; border-bottom: 1px solid #111; position: sticky; top: 0; z-index: 100; }
         .user-tag { font-size: 0.7rem; color: #888; text-align: right; }
-        .user-tag b { color: var(--n-red); display: block; font-size: 0.9rem; letter-spacing: 1px; }
+        .user-tag b { color: var(--n-red); display: block; font-size: 0.9rem; }
 
         .container { padding: 15px 5%; }
         .view { display: none; }
@@ -28,33 +28,27 @@
 
         /* Catálogo */
         .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-        .card { position: relative; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
-        .card img { width: 100%; border-radius: 4px; display: block; }
+        .card img { width: 100%; border-radius: 4px; display: block; border: 1px solid #222; }
 
-        /* Lista de Episodios */
-        .ep-row { padding: 18px 0; border-bottom: 1px solid #222; display: flex; justify-content: space-between; align-items: center; }
-        .ep-info { flex: 1; }
+        /* Lista Episodios */
+        .ep-row { padding: 18px 0; border-bottom: 1px solid #222; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
         .res-tag { font-size: 0.75rem; color: #888; margin-top: 5px; }
         .res-tag b { color: var(--n-red); }
 
         /* Pantalla Puntos */
-        .scoring-panel { margin-top: 20px; }
-        .target-label { text-align: center; color: #666; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 2px; }
-        .target-name { text-align: center; font-size: 2rem; font-weight: bold; margin: 10px 0 30px 0; color: var(--n-white); }
-        
-        .controls { display: flex; justify-content: center; align-items: center; gap: 40px; margin-bottom: 40px; }
-        .btn-p { background: #1a1a1a; color: white; border: 1px solid #333; width: 70px; height: 70px; border-radius: 50%; font-size: 2rem; font-weight: 300; }
-        .btn-p:active { background: var(--n-red); border-color: var(--n-red); }
+        .controls { display: flex; justify-content: center; align-items: center; gap: 40px; margin: 30px 0; }
+        .btn-p { background: #1a1a1a; color: white; border: 1px solid #333; width: 70px; height: 70px; border-radius: 50%; font-size: 2rem; }
+        .btn-p:active { background: var(--n-red); }
         .num-val { font-size: 4.5rem; font-weight: bold; min-width: 80px; text-align: center; }
 
-        .btn-fin { background: var(--n-red); color: white; border: none; padding: 18px; width: 100%; font-weight: bold; border-radius: 4px; font-size: 1rem; margin-top: 20px; }
+        .btn-fin { background: var(--n-red); color: white; border: none; padding: 18px; width: 100%; font-weight: bold; border-radius: 4px; margin-top: 20px; }
         .locked-box { background: #111; padding: 25px; border-radius: 8px; border: 1px solid #222; text-align: center; }
     </style>
 </head>
 <body>
 
 <div id="login" class="view active">
-    <h1 style="font-weight: 400; font-size: 1.8rem;">¿Quién está viendo?</h1>
+    <h1>¿Quién está viendo?</h1>
     <div class="profile-box">
         <div class="profile" onclick="startApp('franco')">
             <img src="https://upload.wikimedia.org/wikipedia/commons/0/0b/Netflix-avatar.png">
@@ -76,37 +70,35 @@
     <div id="home" class="view">
         <h2 style="font-size: 1.1rem; margin-bottom: 15px;">Mi lista</h2>
         <div class="grid">
-            <div class="card" onclick="loadEps('boys')"><img src="img/serie1.png"></div>
-            <div class="card" onclick="loadEps('stranger')"><img src="img/serie2.jpg"></div>
+            <div class="card" onclick="loadEps('boys')"><img src="img/serie1.png" alt="Boys Over Flowers"></div>
+            <div class="card" onclick="loadEps('stranger')"><img src="img/serie2.jpg" alt="Stranger Things"></div>
         </div>
     </div>
 
     <div id="episodes" class="view">
-        <div onclick="showView('home')" style="padding:15px 0; color:#b3b3b3; font-size: 0.9rem;">✕ CERRAR</div>
+        <div onclick="showView('home')" style="padding:15px 0; color:#b3b3b3;">✕ CERRAR</div>
         <h2 id="s-title" style="color: var(--n-red);"></h2>
         <div id="eps-list"></div>
     </div>
 
     <div id="scoring" class="view">
-        <div onclick="showView('episodes')" style="padding:15px 0; color:#b3b3b3; font-size: 0.9rem;">← ATRÁS</div>
-        <h3 id="ep-name-header" style="text-align:center; color: #444; font-size: 0.8rem;"></h3>
+        <div onclick="showView('episodes')" style="padding:15px 0; color:#b3b3b3;">← ATRÁS</div>
+        <h3 id="ep-name-header" style="text-align:center; color: #444; font-size: 0.8rem; text-transform: uppercase;"></h3>
         
-        <div class="scoring-panel">
-            <div id="active-ui">
-                <p class="target-label">Dar puntos a:</p>
-                <div class="target-name" id="target-player"></div>
-                <div class="controls">
-                    <button class="btn-p" onclick="updatePoints(-1)">-</button>
-                    <div class="num-val" id="current-pts">0</div>
-                    <button class="btn-p" onclick="updatePoints(1)">+</button>
-                </div>
-                <button class="btn-fin" onclick="lockEp()">TERMINAR CAPÍTULO</button>
+        <div id="active-ui">
+            <p style="text-align: center; color: #666; margin-bottom: 5px;">DAR PUNTOS A:</p>
+            <h1 id="target-player" style="text-align:center; margin-top: 0; letter-spacing: 2px;"></h1>
+            <div class="controls">
+                <button class="btn-p" onclick="updatePoints(-1)">-</button>
+                <div class="num-val" id="current-pts">0</div>
+                <button class="btn-p" onclick="updatePoints(1)">+</button>
             </div>
+            <button class="btn-fin" onclick="lockEp()">TERMINAR CAPÍTULO</button>
+        </div>
 
-            <div id="locked-ui" style="display:none" class="locked-box">
-                <div style="font-size: 0.8rem; color: var(--n-red); margin-bottom: 10px;">🔒 CAPÍTULO FINALIZADO</div>
-                <div id="final-res" style="font-size: 1.4rem; font-weight: bold;"></div>
-            </div>
+        <div id="locked-ui" style="display:none" class="locked-box">
+            <div style="font-size: 0.8rem; color: var(--n-red); margin-bottom: 10px;">🔒 CAPÍTULO FINALIZADO</div>
+            <div id="final-res" style="font-size: 1.4rem; font-weight: bold;"></div>
         </div>
     </div>
 </div>
@@ -115,13 +107,15 @@
     // CREDENCIALES
     const SB_URL = 'https://xgogmukydlcnznbphjns.supabase.co';
     const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inhnb2dtdWt5ZGxjbnpuYnBoam5zIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYyNTE5NjQsImV4cCI6MjA5MTgyNzk2NH0.thIiVyTCwhXY-ZnZAWw3lx8WtagjnZmEjnCAv9N-biU';
+    
+    // Inicialización de Supabase corregida
     const _supabase = supabase.createClient(SB_URL, SB_KEY);
 
     let currentUser = '';
     let activeKey = '';
     const series = {
-        boys: { n: "Boys Over Flowers", e: ["Episodio 1", "Episodio 2", "Episodio 3", "Episodio 4", "Episodio 5"] },
-        stranger: { n: "Stranger Things", e: ["Capítulo 1", "Capítulo 2", "Capítulo 3", "Capítulo 4"] }
+        boys: { n: "Boys Over Flowers", e: ["Episodio 1", "Episodio 2", "Episodio 3", "Episodio 4"] },
+        stranger: { n: "Stranger Things", e: ["Capítulo 1", "Capítulo 2", "Capítulo 3"] }
     };
 
     function startApp(u) {
@@ -134,10 +128,16 @@
     async function loadEps(id) {
         document.getElementById('s-title').innerText = series[id].n;
         const list = document.getElementById('eps-list');
-        list.innerHTML = '<p style="color:#444">Sincronizando...</p>';
+        list.innerHTML = '<p style="color:#444">Sincronizando con la nube...</p>';
+        showView('episodes');
 
-        const { data: dbData } = await _supabase.from('game_state').select('*');
+        const { data: dbData, error } = await _supabase.from('game_state').select('*');
         
+        if (error) {
+            list.innerHTML = '<p style="color:red">Error de conexión. Revisa el SQL Editor.</p>';
+            return;
+        }
+
         list.innerHTML = '';
         series[id].e.forEach((name, i) => {
             const key = `${id}-${i}`;
@@ -154,15 +154,14 @@
                         <div>${name}</div>
                         ${resTxt}
                     </div>
-                    <div style="color:var(--n-red); font-size: 0.8rem;">${info?.is_locked ? '🔒' : '▶'}</div>
+                    <div style="color:var(--n-red)">${info?.is_locked ? '🔒' : '▶'}</div>
                 </div>`;
         });
-        showView('episodes');
     }
 
     async function openScoring(key, name) {
         activeKey = key;
-        document.getElementById('ep-name-header').innerText = name.toUpperCase();
+        document.getElementById('ep-name-header').innerText = name;
         const target = currentUser === 'franco' ? 'jess' : 'franco';
         document.getElementById('target-player').innerText = target.toUpperCase();
 
@@ -186,11 +185,12 @@
         const current = parseInt(document.getElementById('current-pts').innerText);
         const newVal = current + mod;
 
+        document.getElementById('current-pts').innerText = newVal; // Actualización visual instantánea
+
         const updateData = { id: activeKey };
         updateData[`${target}_pts`] = newVal;
 
         await _supabase.from('game_state').upsert(updateData);
-        document.getElementById('current-pts').innerText = newVal;
     }
 
     async function lockEp() {
