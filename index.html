@@ -4,200 +4,206 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Netflix</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root { --n-red: #E50914; --n-black: #000000; --n-gray: #121212; --n-white: #FFFFFF; }
-        body { background-color: var(--n-black); color: var(--n-white); font-family: 'Helvetica Neue', Arial; margin: 0; padding: 0; user-select: none; }
+        body { background-color: var(--n-black); color: var(--n-white); font-family: 'Helvetica Neue', Arial, sans-serif; margin: 0; padding: 0; user-select: none; }
         
-        /* Login */
-        #login-screen { height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; }
-        .profile-box { display: flex; gap: 30px; margin-top: 30px; }
-        .profile { text-align: center; cursor: pointer; }
-        .profile img { width: 100px; height: 100px; border-radius: 4px; border: 2px solid transparent; }
-        .profile:active img { border-color: white; transform: scale(0.9); }
+        /* Pantalla Login */
+        #login { height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; background: #000; }
+        .profile-box { display: flex; gap: 25px; margin-top: 30px; }
+        .profile { text-align: center; cursor: pointer; transition: transform 0.2s; }
+        .profile img { width: 95px; height: 95px; border-radius: 4px; object-fit: cover; }
+        .profile p { margin-top: 8px; font-size: 0.9rem; color: #b3b3b3; }
+        .profile:active { transform: scale(0.9); }
 
-        /* UI General */
-        header { padding: 15px 4%; display: flex; justify-content: space-between; align-items: center; background: #000; }
-        .user-info { font-size: 0.8rem; text-align: right; }
-        .user-info span { color: var(--n-red); font-weight: bold; display: block; }
+        /* UI Principal */
+        header { padding: 15px 5%; display: flex; justify-content: space-between; align-items: center; background: #000; border-bottom: 1px solid #111; position: sticky; top: 0; z-index: 100; }
+        .user-tag { font-size: 0.7rem; color: #888; text-align: right; }
+        .user-tag b { color: var(--n-red); display: block; font-size: 0.9rem; letter-spacing: 1px; }
 
-        .container { padding: 0 4%; }
+        .container { padding: 15px 5%; }
         .view { display: none; }
         .active { display: block; }
 
-        /* Grid */
-        .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 20px; }
-        .card { border-radius: 4px; overflow: hidden; position: relative; border: 1px solid #222; }
-        .card img { width: 100%; height: auto; display: block; }
+        /* Catálogo */
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .card { position: relative; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
+        .card img { width: 100%; border-radius: 4px; display: block; }
 
-        /* Lista Episodios */
-        .ep-row { padding: 15px 0; border-bottom: 1px solid #222; display: flex; justify-content: space-between; align-items: center; }
-        .winner-tag { font-size: 0.7rem; color: #aaa; margin-top: 4px; font-style: italic; }
-        .winner-tag b { color: var(--n-red); }
+        /* Lista de Episodios */
+        .ep-row { padding: 18px 0; border-bottom: 1px solid #222; display: flex; justify-content: space-between; align-items: center; }
+        .ep-info { flex: 1; }
+        .res-tag { font-size: 0.75rem; color: #888; margin-top: 5px; }
+        .res-tag b { color: var(--n-red); }
 
-        /* Control de Puntos */
-        .points-area { margin-top: 40px; text-align: center; }
-        .target-name { font-size: 1.5rem; letter-spacing: 2px; margin-bottom: 20px; }
-        .controls { display: flex; justify-content: center; align-items: center; gap: 30px; }
-        .btn-p { background: #333; color: white; border: none; width: 60px; height: 60px; border-radius: 50%; font-size: 1.8rem; }
-        .score-big { font-size: 4rem; font-weight: bold; min-width: 80px; }
+        /* Pantalla Puntos */
+        .scoring-panel { margin-top: 20px; }
+        .target-label { text-align: center; color: #666; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 2px; }
+        .target-name { text-align: center; font-size: 2rem; font-weight: bold; margin: 10px 0 30px 0; color: var(--n-white); }
+        
+        .controls { display: flex; justify-content: center; align-items: center; gap: 40px; margin-bottom: 40px; }
+        .btn-p { background: #1a1a1a; color: white; border: 1px solid #333; width: 70px; height: 70px; border-radius: 50%; font-size: 2rem; font-weight: 300; }
+        .btn-p:active { background: var(--n-red); border-color: var(--n-red); }
+        .num-val { font-size: 4.5rem; font-weight: bold; min-width: 80px; text-align: center; }
 
-        .btn-finish { background: var(--n-red); color: white; border: none; padding: 15px; width: 100%; font-weight: bold; margin-top: 40px; border-radius: 4px; }
-        .locked-card { background: #111; padding: 20px; border-radius: 10px; border: 1px dashed #333; }
+        .btn-fin { background: var(--n-red); color: white; border: none; padding: 18px; width: 100%; font-weight: bold; border-radius: 4px; font-size: 1rem; margin-top: 20px; }
+        .locked-box { background: #111; padding: 25px; border-radius: 8px; border: 1px solid #222; text-align: center; }
     </style>
 </head>
 <body>
 
 <div id="login" class="view active">
-    <div id="login-screen">
-        <h1>¿Quién está viendo?</h1>
-        <div class="profile-box">
-            <div class="profile" onclick="login('franco')">
-                <img src="https://upload.wikimedia.org/wikipedia/commons/0/0b/Netflix-avatar.png" alt="F">
-                <p>Franco</p>
-            </div>
-            <div class="profile" onclick="login('jess')">
-                <img src="https://prodigits.co.uk/thumbs/wallpapers/p2/movies/31/76d1810b12631524.jpg" alt="J">
-                <p>Jess</p>
-            </div>
+    <h1 style="font-weight: 400; font-size: 1.8rem;">¿Quién está viendo?</h1>
+    <div class="profile-box">
+        <div class="profile" onclick="startApp('franco')">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/0/0b/Netflix-avatar.png">
+            <p>Franco</p>
+        </div>
+        <div class="profile" onclick="startApp('jess')">
+            <img src="https://prodigits.co.uk/thumbs/wallpapers/p2/movies/31/76d1810b12631524.jpg">
+            <p>Jess</p>
         </div>
     </div>
 </div>
 
-<header id="main-header" style="display:none">
-    <div style="color:var(--n-red); font-weight:bold; font-size:1.4rem">NETFLIX</div>
-    <div class="user-info">
-        Perfil: <span id="current-user-name"></span>
-        Total: <span id="current-user-global">0</span>
-    </div>
+<header id="header" style="display:none">
+    <div style="color:var(--n-red); font-weight:bold; font-size:1.6rem; letter-spacing:-1px">NETFLIX</div>
+    <div class="user-tag">ESTÁS COMO<b><span id="u-name"></span></b></div>
 </header>
 
 <div class="container">
     <div id="home" class="view">
+        <h2 style="font-size: 1.1rem; margin-bottom: 15px;">Mi lista</h2>
         <div class="grid">
-            <div class="card" onclick="openSeries('boys')">
-                <img src="img/serie1.png" alt="BOF">
-            </div>
-            <div class="card" onclick="openSeries('stranger')">
-                <img src="img/serie2.jpg" alt="ST">
-            </div>
+            <div class="card" onclick="loadEps('boys')"><img src="img/serie1.png"></div>
+            <div class="card" onclick="loadEps('stranger')"><img src="img/serie2.jpg"></div>
         </div>
     </div>
 
     <div id="episodes" class="view">
-        <div onclick="switchView('home')" style="padding:20px 0; color:#888">← Volver</div>
-        <h2 id="series-title"></h2>
-        <div id="episodes-container"></div>
+        <div onclick="showView('home')" style="padding:15px 0; color:#b3b3b3; font-size: 0.9rem;">✕ CERRAR</div>
+        <h2 id="s-title" style="color: var(--n-red);"></h2>
+        <div id="eps-list"></div>
     </div>
 
-    <div id="points" class="view">
-        <div onclick="switchView('episodes')" style="padding:20px 0; color:#888">← Atrás</div>
-        <div id="betting-ui">
-            <p style="color:#666">Dar puntos a:</p>
-            <div class="target-name" id="target-player-name"></div>
-            <div class="controls">
-                <button class="btn-p" onclick="modificar(-1)">-</button>
-                <div class="score-big" id="current-bet-val">0</div>
-                <button class="btn-p" onclick="modificar(1)">+</button>
+    <div id="scoring" class="view">
+        <div onclick="showView('episodes')" style="padding:15px 0; color:#b3b3b3; font-size: 0.9rem;">← ATRÁS</div>
+        <h3 id="ep-name-header" style="text-align:center; color: #444; font-size: 0.8rem;"></h3>
+        
+        <div class="scoring-panel">
+            <div id="active-ui">
+                <p class="target-label">Dar puntos a:</p>
+                <div class="target-name" id="target-player"></div>
+                <div class="controls">
+                    <button class="btn-p" onclick="updatePoints(-1)">-</button>
+                    <div class="num-val" id="current-pts">0</div>
+                    <button class="btn-p" onclick="updatePoints(1)">+</button>
+                </div>
+                <button class="btn-fin" onclick="lockEp()">TERMINAR CAPÍTULO</button>
             </div>
-            <button class="btn-finish" onclick="confirmar()">TERMINAR CAPÍTULO</button>
-        </div>
-        <div id="locked-ui" class="view" style="text-align:center">
-            <div class="locked-card">
-                <h3>Capítulo Cerrado</h3>
-                <div id="final-result-display" style="font-size: 1.5rem;"></div>
+
+            <div id="locked-ui" style="display:none" class="locked-box">
+                <div style="font-size: 0.8rem; color: var(--n-red); margin-bottom: 10px;">🔒 CAPÍTULO FINALIZADO</div>
+                <div id="final-res" style="font-size: 1.4rem; font-weight: bold;"></div>
             </div>
         </div>
     </div>
 </div>
 
 <script>
-    const data = {
-        boys: { title: "Boys Over Flowers", eps: ["Capítulo 1", "Capítulo 2", "Capítulo 3"] },
-        stranger: { title: "Stranger Things", eps: ["La Desaparición", "El Mapa", "El Monstruo"] }
+    // CREDENCIALES
+    const SB_URL = 'https://xgogmukydlcnznbphjns.supabase.co';
+    const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inhnb2dtdWt5ZGxjbnpuYnBoam5zIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYyNTE5NjQsImV4cCI6MjA5MTgyNzk2NH0.thIiVyTCwhXY-ZnZAWw3lx8WtagjnZmEjnCAv9N-biU';
+    const _supabase = supabase.createClient(SB_URL, SB_KEY);
+
+    let currentUser = '';
+    let activeKey = '';
+    const series = {
+        boys: { n: "Boys Over Flowers", e: ["Episodio 1", "Episodio 2", "Episodio 3", "Episodio 4", "Episodio 5"] },
+        stranger: { n: "Stranger Things", e: ["Capítulo 1", "Capítulo 2", "Capítulo 3", "Capítulo 4"] }
     };
 
-    let user = '';
-    let gameState = JSON.parse(localStorage.getItem('netflix_pro')) || {};
-    let activeKey = '';
-
-    function login(u) {
-        user = u;
-        document.getElementById('current-user-name').innerText = u.toUpperCase();
-        document.getElementById('main-header').style.display = 'flex';
-        updateGlobal();
-        switchView('home');
+    function startApp(u) {
+        currentUser = u;
+        document.getElementById('u-name').innerText = u.toUpperCase();
+        document.getElementById('header').style.display = 'flex';
+        showView('home');
     }
 
-    function updateGlobal() {
-        let total = 0;
-        Object.values(gameState).forEach(val => { total += val[user] || 0; });
-        document.getElementById('current-user-global').innerText = total;
-    }
+    async function loadEps(id) {
+        document.getElementById('s-title').innerText = series[id].n;
+        const list = document.getElementById('eps-list');
+        list.innerHTML = '<p style="color:#444">Sincronizando...</p>';
 
-    function openSeries(id) {
-        document.getElementById('series-title').innerText = data[id].title;
-        const container = document.getElementById('episodes-container');
-        container.innerHTML = '';
-        data[id].eps.forEach((ep, i) => {
+        const { data: dbData } = await _supabase.from('game_state').select('*');
+        
+        list.innerHTML = '';
+        series[id].e.forEach((name, i) => {
             const key = `${id}-${i}`;
-            const state = gameState[key];
-            let tag = '';
-            if(state && state.locked) {
-                const diff = Math.abs(state.franco - state.jess);
-                const winner = state.franco > state.jess ? 'Franco' : (state.jess > state.franco ? 'Jess' : 'Empate');
-                tag = `<div class="winner-tag">Ganador: <b>${winner}</b> (${state.franco}-${state.jess})</div>`;
+            const info = dbData?.find(d => d.id === key);
+            let resTxt = '';
+            if(info?.is_locked) {
+                const winner = info.franco_pts > info.jess_pts ? 'FRANCO' : (info.jess_pts > info.franco_pts ? 'JESS' : 'EMPATE');
+                resTxt = `<div class="res-tag">Ganó: <b>${winner}</b> (${info.franco_pts}-${info.jess_pts})</div>`;
             }
-            container.innerHTML += `
-                <div class="ep-row" onclick="openPoints('${key}', '${ep}')">
-                    <div>
-                        <div>${ep}</div>
-                        ${tag}
+            
+            list.innerHTML += `
+                <div class="ep-row" onclick="openScoring('${key}', '${name}')">
+                    <div class="ep-info">
+                        <div>${name}</div>
+                        ${resTxt}
                     </div>
-                    <div style="color:var(--n-red)">${state?.locked ? '🔒' : '▶'}</div>
+                    <div style="color:var(--n-red); font-size: 0.8rem;">${info?.is_locked ? '🔒' : '▶'}</div>
                 </div>`;
         });
-        switchView('episodes');
+        showView('episodes');
     }
 
-    function openPoints(key, name) {
+    async function openScoring(key, name) {
         activeKey = key;
-        if(!gameState[key]) gameState[key] = { franco: 0, jess: 0, locked: false };
-        
-        const target = (user === 'franco') ? 'jess' : 'franco';
-        document.getElementById('target-player-name').innerText = target.toUpperCase();
-        document.getElementById('current-bet-val').innerText = gameState[key][target];
+        document.getElementById('ep-name-header').innerText = name.toUpperCase();
+        const target = currentUser === 'franco' ? 'jess' : 'franco';
+        document.getElementById('target-player').innerText = target.toUpperCase();
 
-        if(gameState[key].locked) {
-            document.getElementById('betting-ui').style.display = 'none';
-            document.getElementById('locked-ui').classList.add('active');
-            document.getElementById('final-result-display').innerHTML = 
-                `Resultado Final:<br>Franco: ${gameState[key].franco} | Jess: ${gameState[key].jess}`;
+        const { data } = await _supabase.from('game_state').select('*').eq('id', key).single();
+        const val = data ? data[`${target}_pts`] : 0;
+        document.getElementById('current-pts').innerText = val;
+
+        if (data?.is_locked) {
+            document.getElementById('active-ui').style.display = 'none';
+            document.getElementById('locked-ui').style.display = 'block';
+            document.getElementById('final-res').innerText = `FRANCO ${data.franco_pts} - ${data.jess_pts} JESS`;
         } else {
-            document.getElementById('betting-ui').style.display = 'block';
-            document.getElementById('locked-ui').classList.remove('active');
+            document.getElementById('active-ui').style.display = 'block';
+            document.getElementById('locked-ui').style.display = 'none';
         }
-        switchView('points');
+        showView('scoring');
     }
 
-    function modificar(val) {
-        const target = (user === 'franco') ? 'jess' : 'franco';
-        gameState[activeKey][target] += val;
-        document.getElementById('current-bet-val').innerText = gameState[activeKey][target];
-        localStorage.setItem('netflix_pro', JSON.stringify(gameState));
-        updateGlobal();
+    async function updatePoints(mod) {
+        const target = currentUser === 'franco' ? 'jess' : 'franco';
+        const current = parseInt(document.getElementById('current-pts').innerText);
+        const newVal = current + mod;
+
+        const updateData = { id: activeKey };
+        updateData[`${target}_pts`] = newVal;
+
+        await _supabase.from('game_state').upsert(updateData);
+        document.getElementById('current-pts').innerText = newVal;
     }
 
-    function confirmar() {
-        if(confirm("¿Terminar capítulo? Se mostrarán los resultados.")) {
-            gameState[activeKey].locked = true;
-            localStorage.setItem('netflix_pro', JSON.stringify(gameState));
-            openPoints(activeKey);
+    async function lockEp() {
+        if (confirm("¿Terminar capítulo? No habrá vuelta atrás.")) {
+            await _supabase.from('game_state').update({ is_locked: true }).eq('id', activeKey);
+            openScoring(activeKey, document.getElementById('ep-name-header').innerText);
         }
     }
 
-    function switchView(id) {
+    function showView(id) {
         document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
         document.getElementById(id).classList.add('active');
+        window.scrollTo(0,0);
     }
 </script>
 </body>
