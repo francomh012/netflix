@@ -3,6 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Netflix Puntos">
+<meta name="theme-color" content="#000000">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="img/netflix.png">
 <title>Netflix · Puntos</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;700&display=swap" rel="stylesheet">
@@ -25,9 +31,7 @@
 }
 
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; margin: 0; padding: 0; }
-
 html { scroll-behavior: smooth; }
-
 body {
   background: var(--black);
   color: var(--white);
@@ -36,7 +40,6 @@ body {
   overflow-x: hidden;
 }
 
-/* ─── NOISE OVERLAY ─────────────────────────── */
 body::before {
   content: '';
   position: fixed;
@@ -47,7 +50,6 @@ body::before {
   opacity: .5;
 }
 
-/* ─── ANIMATIONS ─────────────────────────────── */
 @keyframes fadeUp {
   from { opacity: 0; transform: translateY(24px); }
   to   { opacity: 1; transform: translateY(0); }
@@ -80,20 +82,17 @@ body::before {
   0%   { background-position: -200% 0; }
   100% { background-position: 200% 0; }
 }
-@keyframes slideIn {
-  from { opacity: 0; transform: translateX(-30px); }
-  to   { opacity: 1; transform: translateX(0); }
+@keyframes syncPulse { 0%,100%{opacity:1}50%{opacity:.4} }
+@keyframes floatParticle {
+  0%   { transform: translateY(100vh) scale(0); opacity: 0; }
+  10%  { opacity: .6; }
+  90%  { opacity: .3; }
+  100% { transform: translateY(-10vh) scale(1.5); opacity: 0; }
 }
 
-.anim-fadeup { animation: fadeUp .45s cubic-bezier(.22,1,.36,1) both; }
-.anim-scalein { animation: scaleIn .35s cubic-bezier(.22,1,.36,1) both; }
-.anim-fadein  { animation: fadeIn .4s ease both; }
-
-/* ─── VIEW SYSTEM ─────────────────────────────── */
 .view { display: none; }
 .view.active { display: block; animation: fadeUp .4s cubic-bezier(.22,1,.36,1) both; }
 
-/* ─── PARTICLES ─────────────────────────────── */
 #particles {
   position: fixed;
   inset: 0;
@@ -109,25 +108,17 @@ body::before {
   opacity: 0;
   animation: floatParticle linear infinite;
 }
-@keyframes floatParticle {
-  0%   { transform: translateY(100vh) scale(0); opacity: 0; }
-  10%  { opacity: .6; }
-  90%  { opacity: .3; }
-  100% { transform: translateY(-10vh) scale(1.5); opacity: 0; }
-}
 
-/* ─── LOGIN ─────────────────────────────────── */
+/* ── LOGIN ── */
 #login {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  gap: 0;
   position: relative;
   z-index: 10;
 }
-
 .login-logo {
   font-family: 'Bebas Neue', sans-serif;
   font-size: 3.5rem;
@@ -151,12 +142,7 @@ body::before {
   font-weight: 300;
   animation: fadeUp .6s .15s cubic-bezier(.22,1,.36,1) both;
 }
-
-.profiles {
-  display: flex;
-  gap: 36px;
-}
-
+.profiles { display: flex; gap: 36px; }
 .profile {
   display: flex;
   flex-direction: column;
@@ -166,10 +152,8 @@ body::before {
   animation: fadeUp .6s .25s cubic-bezier(.22,1,.36,1) both;
 }
 .profile:nth-child(2) { animation-delay: .35s; }
-
 .profile-avatar {
-  width: 108px;
-  height: 108px;
+  width: 108px; height: 108px;
   border-radius: 8px;
   overflow: hidden;
   border: 2px solid transparent;
@@ -182,32 +166,16 @@ body::before {
   inset: 0;
   background: linear-gradient(to bottom, transparent 60%, rgba(0,0,0,.5));
 }
-.profile-avatar img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
-}
-.profile:active .profile-avatar {
-  border-color: var(--white);
-  transform: scale(.96);
-  box-shadow: 0 0 30px rgba(229,9,20,.3);
-}
-.profile-name {
-  font-size: .85rem;
-  color: var(--silver);
-  letter-spacing: 1px;
-  transition: color .2s;
-}
+.profile-avatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.profile:active .profile-avatar { border-color: var(--white); transform: scale(.96); box-shadow: 0 0 30px rgba(229,9,20,.3); }
+.profile-name { font-size: .85rem; color: var(--silver); letter-spacing: 1px; transition: color .2s; }
 .profile:active .profile-name { color: var(--white); }
-
-/* Franco / Jess color themes */
 .profile-franco .profile-avatar { box-shadow: 0 4px 20px rgba(79,195,247,.15); }
 .profile-jess   .profile-avatar { box-shadow: 0 4px 20px rgba(244,143,177,.15); }
 .profile-franco:active .profile-avatar { border-color: var(--franco) !important; box-shadow: 0 0 30px rgba(79,195,247,.4) !important; }
-.profile-jess:active   .profile-avatar { border-color: var(--jess) !important;   box-shadow: 0 0 30px rgba(244,143,177,.4) !important; }
+.profile-jess:active   .profile-avatar { border-color: var(--jess) !important; box-shadow: 0 0 30px rgba(244,143,177,.4) !important; }
 
-/* ─── HEADER ─────────────────────────────────── */
+/* ── HEADER ── */
 #header {
   display: none;
   padding: 16px 5%;
@@ -219,399 +187,160 @@ body::before {
   background: linear-gradient(to bottom, rgba(0,0,0,.95) 0%, rgba(0,0,0,.0) 100%);
   backdrop-filter: blur(2px);
 }
-
-.header-logo {
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 1.7rem;
-  color: var(--red);
-  letter-spacing: 2px;
-}
-.header-user {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-.header-dot {
-  width: 8px; height: 8px;
-  border-radius: 50%;
-  background: var(--red);
-  animation: pulse-ring 2s ease infinite;
-}
-.header-name {
-  font-size: .8rem;
-  color: var(--silver);
-  font-weight: 300;
-  text-transform: uppercase;
-  letter-spacing: 2px;
-}
+.header-logo { font-family: 'Bebas Neue', sans-serif; font-size: 1.7rem; color: var(--red); letter-spacing: 2px; }
+.header-user { display: flex; align-items: center; gap: 10px; }
+.header-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--red); animation: pulse-ring 2s ease infinite; }
+.header-name { font-size: .8rem; color: var(--silver); font-weight: 300; text-transform: uppercase; letter-spacing: 2px; }
 .header-name b { color: var(--white); font-weight: 700; }
 
-/* ─── CONTAINER ─────────────────────────────── */
-.container {
-  padding: 0 5% 60px;
-  position: relative;
-  z-index: 1;
-}
+/* ── CONTAINER ── */
+.container { padding: 0 5% 60px; position: relative; z-index: 1; }
 
-/* ─── HOME ─────────────────────────────────── */
-.section-label {
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 1.4rem;
-  letter-spacing: 2px;
-  color: var(--silver);
-  margin: 24px 0 16px;
-}
-
-.grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 14px;
-}
-
-.card {
-  position: relative;
-  cursor: pointer;
-  border-radius: 6px;
-  overflow: hidden;
-  box-shadow: 0 8px 30px rgba(0,0,0,.7);
-  transition: transform .25s cubic-bezier(.22,1,.36,1), box-shadow .25s;
-}
-.card:active {
-  transform: scale(.97);
-  box-shadow: 0 4px 15px rgba(0,0,0,.8);
-}
-.card img {
-  width: 100%;
-  height: auto;
-  display: block;
-}
-.card-overlay {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(to top, rgba(0,0,0,.7) 0%, transparent 50%);
-  transition: opacity .2s;
-}
+/* ── HOME ── */
+.section-label { font-family: 'Bebas Neue', sans-serif; font-size: 1.4rem; letter-spacing: 2px; color: var(--silver); margin: 24px 0 16px; }
+.grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
+.card { position: relative; cursor: pointer; border-radius: 6px; overflow: hidden; box-shadow: 0 8px 30px rgba(0,0,0,.7); transition: transform .25s cubic-bezier(.22,1,.36,1), box-shadow .25s; }
+.card:active { transform: scale(.97); box-shadow: 0 4px 15px rgba(0,0,0,.8); }
+.card img { width: 100%; height: auto; display: block; }
+.card-overlay { position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,0,0,.7) 0%, transparent 50%); transition: opacity .2s; }
 .card:active .card-overlay { opacity: .8; }
+.badge { position: absolute; top: 8px; right: 8px; background: var(--red); color: #fff; font-size: .55rem; font-weight: 700; padding: 4px 7px; border-radius: 3px; letter-spacing: 1px; text-transform: uppercase; }
 
-.badge {
-  position: absolute;
-  top: 8px; right: 8px;
-  background: var(--red);
-  color: #fff;
-  font-size: .55rem;
-  font-weight: 700;
-  padding: 4px 7px;
-  border-radius: 3px;
-  letter-spacing: 1px;
-  text-transform: uppercase;
-}
-
-/* ─── BACK BTN ─────────────────────────────── */
-.back-btn {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 20px 0 10px;
-  color: var(--silver);
-  font-size: .85rem;
-  cursor: pointer;
-  letter-spacing: 1px;
-  text-transform: uppercase;
-  transition: color .2s;
-}
+/* ── BACK BTN ── */
+.back-btn { display: flex; align-items: center; gap: 10px; padding: 20px 0 10px; color: var(--silver); font-size: .85rem; cursor: pointer; letter-spacing: 1px; text-transform: uppercase; transition: color .2s; }
 .back-btn:active { color: var(--white); }
-.back-arrow {
-  width: 28px; height: 28px;
-  border-radius: 50%;
-  background: var(--card);
-  border: 1px solid var(--border);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: .9rem;
-  transition: background .2s;
-}
+.back-arrow { width: 28px; height: 28px; border-radius: 50%; background: var(--card); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: .9rem; transition: background .2s; }
 .back-btn:active .back-arrow { background: var(--red); border-color: var(--red); }
 
-/* ─── EPISODES ─────────────────────────────── */
-#series-title {
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 2rem;
-  letter-spacing: 2px;
-  margin-bottom: 16px;
-}
-
-.season-select {
-  background: var(--card);
-  color: var(--white);
-  border: 1px solid var(--border);
-  padding: 12px 16px;
-  font-size: .9rem;
-  font-family: 'DM Sans', sans-serif;
-  border-radius: 6px;
-  margin-bottom: 24px;
-  width: 100%;
-  outline: none;
-  appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23666' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 14px center;
-}
-
-.ep-row {
-  padding: 18px 14px;
-  border-bottom: 1px solid #1a1a1a;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  cursor: pointer;
-  border-radius: 6px;
-  transition: background .15s;
-  gap: 12px;
-}
+/* ── EPISODES ── */
+#series-title { font-family: 'Bebas Neue', sans-serif; font-size: 2rem; letter-spacing: 2px; margin-bottom: 16px; }
+.season-select { background: var(--card); color: var(--white); border: 1px solid var(--border); padding: 12px 16px; font-size: .9rem; font-family: 'DM Sans', sans-serif; border-radius: 6px; margin-bottom: 24px; width: 100%; outline: none; appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23666' stroke-width='1.5' fill='none'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 14px center; }
+.ep-row { padding: 18px 14px; border-bottom: 1px solid #1a1a1a; display: flex; justify-content: space-between; align-items: center; cursor: pointer; border-radius: 6px; transition: background .15s; gap: 12px; }
 .ep-row:active { background: rgba(255,255,255,.04); }
-
 .ep-info { display: flex; flex-direction: column; gap: 5px; flex: 1; min-width: 0; }
-.ep-num  { font-family: 'Bebas Neue', sans-serif; font-size: 1.6rem; color: var(--border); line-height: 1; width: 32px; flex-shrink: 0; }
+.ep-num { font-family: 'Bebas Neue', sans-serif; font-size: 1.6rem; color: var(--border); line-height: 1; width: 32px; flex-shrink: 0; }
 .ep-name { font-size: .95rem; color: var(--white); font-weight: 500; }
-.ep-res  { font-size: .75rem; color: var(--gray); }
+.ep-res { font-size: .75rem; color: var(--gray); }
 .ep-icon { font-size: 1.1rem; flex-shrink: 0; }
-
-/* Score pill in list */
-.score-pill {
-  display: flex;
-  gap: 4px;
-  font-size: .7rem;
-}
+.score-pill { display: flex; gap: 4px; font-size: .7rem; }
 .pill { padding: 3px 8px; border-radius: 20px; font-weight: 700; }
 .pill-f { background: rgba(79,195,247,.15); color: var(--franco); }
 .pill-j { background: rgba(244,143,177,.15); color: var(--jess); }
 
-/* ─── SCORING VIEW ─────────────────────────── */
-#ep-display-name {
-  text-align: center;
-  color: var(--silver);
-  font-size: .8rem;
-  letter-spacing: 3px;
+/* ── ADD EPISODE BTN ── */
+.btn-add-ep {
+  width: 100%;
+  padding: 14px;
+  background: transparent;
+  color: var(--gray);
+  border: 1px dashed var(--border);
+  font-size: .85rem;
+  font-family: 'DM Sans', sans-serif;
+  letter-spacing: 2px;
   text-transform: uppercase;
-  margin-bottom: 28px;
-  font-weight: 300;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all .2s;
+  margin-top: 16px;
 }
+.btn-add-ep:active { color: var(--white); border-color: var(--red); background: rgba(229,9,20,.05); }
 
-/* Scoreboard 2 jugadores */
-.scoreboard {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 14px;
-  margin-bottom: 36px;
+/* Modal */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.85);
+  z-index: 200;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  animation: fadeIn .2s ease;
 }
-
-.score-card {
+.modal-box {
   background: var(--card);
   border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 20px 16px;
-  text-align: center;
-  position: relative;
-  overflow: hidden;
-  transition: border-color .3s, box-shadow .3s;
+  border-radius: 14px 14px 0 0;
+  padding: 28px 20px 40px;
+  width: 100%;
+  max-width: 480px;
+  animation: fadeUp .3s cubic-bezier(.22,1,.36,1) both;
 }
-.score-card.my-card {
-  border-color: rgba(229,9,20,.4);
-  box-shadow: 0 0 20px rgba(229,9,20,.1);
+.modal-title { font-family: 'Bebas Neue', sans-serif; font-size: 1.3rem; letter-spacing: 2px; margin-bottom: 18px; }
+.modal-input {
+  width: 100%;
+  background: #1f1f1f;
+  border: 1px solid var(--border);
+  color: var(--white);
+  padding: 14px 16px;
+  font-size: 1rem;
+  font-family: 'DM Sans', sans-serif;
+  border-radius: 6px;
+  outline: none;
+  margin-bottom: 14px;
 }
-.score-card::before {
-  content: '';
-  position: absolute;
-  top: 0; left: 0; right: 0;
-  height: 2px;
-  background: var(--border);
-  transition: background .3s;
+.modal-input:focus { border-color: var(--red); }
+.modal-btns { display: flex; gap: 10px; }
+.btn-modal-ok {
+  flex: 1; padding: 14px;
+  background: var(--red); color: #fff;
+  border: none; border-radius: 6px;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1rem; letter-spacing: 2px;
+  cursor: pointer;
 }
-.score-card.my-card::before { background: var(--red); }
+.btn-modal-cancel {
+  flex: 1; padding: 14px;
+  background: transparent; color: var(--gray);
+  border: 1px solid var(--border); border-radius: 6px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: .9rem; cursor: pointer;
+}
 
+/* ── SCORING ── */
+#ep-display-name { text-align: center; color: var(--silver); font-size: .8rem; letter-spacing: 3px; text-transform: uppercase; margin-bottom: 28px; font-weight: 300; }
+.scoreboard { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 36px; }
+.score-card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 20px 16px; text-align: center; position: relative; overflow: hidden; transition: border-color .3s, box-shadow .3s; }
+.score-card.my-card { border-color: rgba(229,9,20,.4); box-shadow: 0 0 20px rgba(229,9,20,.1); }
+.score-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: var(--border); transition: background .3s; }
+.score-card.my-card::before { background: var(--red); }
 .score-card.franco-card::before { background: var(--franco); }
 .score-card.jess-card::before   { background: var(--jess); }
 .score-card.franco-card { border-color: rgba(79,195,247,.3); box-shadow: 0 0 20px rgba(79,195,247,.07); }
 .score-card.jess-card   { border-color: rgba(244,143,177,.3); box-shadow: 0 0 20px rgba(244,143,177,.07); }
-
-.score-card-label {
-  font-size: .65rem;
-  letter-spacing: 3px;
-  text-transform: uppercase;
-  color: var(--gray);
-  margin-bottom: 8px;
-  font-weight: 500;
-}
-.score-card-name {
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 1.1rem;
-  letter-spacing: 2px;
-  margin-bottom: 10px;
-}
+.score-card-label { font-size: .65rem; letter-spacing: 3px; text-transform: uppercase; color: var(--gray); margin-bottom: 8px; font-weight: 500; }
+.score-card-name { font-family: 'Bebas Neue', sans-serif; font-size: 1.1rem; letter-spacing: 2px; margin-bottom: 10px; }
 .score-card.franco-card .score-card-name { color: var(--franco); }
 .score-card.jess-card   .score-card-name { color: var(--jess); }
-
-.score-card-pts {
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 4rem;
-  line-height: 1;
-  transition: transform .15s cubic-bezier(.22,1,.36,1);
-}
+.score-card-pts { font-family: 'Bebas Neue', sans-serif; font-size: 4rem; line-height: 1; transition: transform .15s cubic-bezier(.22,1,.36,1); }
 .score-card-pts.bounce { animation: countBounce .3s cubic-bezier(.22,1,.36,1); }
-
-.score-card-tag {
-  font-size: .6rem;
-  color: var(--gray);
-  margin-top: 6px;
-  letter-spacing: 2px;
-}
-
-/* Controls */
-.controls-wrap {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 18px;
-  margin-bottom: 30px;
-}
-.controls-label {
-  font-size: .7rem;
-  text-transform: uppercase;
-  letter-spacing: 3px;
-  color: var(--gray);
-}
-.controls {
-  display: flex;
-  align-items: center;
-  gap: 24px;
-}
-.ctrl-btn {
-  width: 64px; height: 64px;
-  border-radius: 50%;
-  font-size: 1.8rem;
-  background: var(--card);
-  color: var(--white);
-  border: 1px solid var(--border);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  cursor: pointer;
-  transition: background .15s, border-color .15s, transform .1s;
-  line-height: 1;
-}
-.ctrl-btn:active {
-  background: var(--red);
-  border-color: var(--red);
-  transform: scale(.92);
-}
-
-.btn-finish {
-  width: 100%;
-  padding: 18px;
-  background: var(--red);
-  color: #fff;
-  border: none;
-  font-size: 1rem;
-  font-family: 'Bebas Neue', sans-serif;
-  letter-spacing: 3px;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: background .2s, transform .1s;
-  animation: pulse-ring 2.5s ease infinite;
-}
+.score-card-tag { font-size: .6rem; color: var(--gray); margin-top: 6px; letter-spacing: 2px; }
+.controls-wrap { display: flex; flex-direction: column; align-items: center; gap: 18px; margin-bottom: 30px; }
+.controls-label { font-size: .7rem; text-transform: uppercase; letter-spacing: 3px; color: var(--gray); }
+.controls { display: flex; align-items: center; gap: 24px; }
+.ctrl-btn { width: 64px; height: 64px; border-radius: 50%; font-size: 1.8rem; background: var(--card); color: var(--white); border: 1px solid var(--border); display: flex; justify-content: center; align-items: center; cursor: pointer; transition: background .15s, border-color .15s, transform .1s; line-height: 1; }
+.ctrl-btn:active { background: var(--red); border-color: var(--red); transform: scale(.92); }
+.btn-finish { width: 100%; padding: 18px; background: var(--red); color: #fff; border: none; font-size: 1rem; font-family: 'Bebas Neue', sans-serif; letter-spacing: 3px; border-radius: 6px; cursor: pointer; transition: background .2s, transform .1s; animation: pulse-ring 2.5s ease infinite; }
 .btn-finish:active { background: var(--red-dim); transform: scale(.98); }
-
-/* Sync indicator */
-#sync-dot {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  font-size: .65rem;
-  color: var(--gray);
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  margin-top: 18px;
-}
-.sync-circle {
-  width: 6px; height: 6px;
-  border-radius: 50%;
-  background: #2ecc71;
-}
+#sync-dot { display: flex; align-items: center; justify-content: center; gap: 8px; font-size: .65rem; color: var(--gray); letter-spacing: 2px; text-transform: uppercase; margin-top: 18px; }
+.sync-circle { width: 6px; height: 6px; border-radius: 50%; background: #2ecc71; }
 .sync-circle.off { background: var(--gray); animation: none; }
-@keyframes syncPulse { 0%,100%{opacity:1}50%{opacity:.4} }
 .sync-circle.on { animation: syncPulse 1.5s ease infinite; }
-
-/* Locked result */
-.locked-result {
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 30px 20px;
-  text-align: center;
-  animation: lockDrop .5s cubic-bezier(.22,1,.36,1) both;
-}
-.lock-icon {
-  font-size: 3rem;
-  display: block;
-  margin-bottom: 10px;
-  animation: lockDrop .6s .1s cubic-bezier(.22,1,.36,1) both;
-}
-.lock-title {
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 1.4rem;
-  letter-spacing: 3px;
-  color: var(--red);
-  margin-bottom: 20px;
-}
-.lock-scores {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 16px;
-  margin-bottom: 16px;
-}
+.locked-result { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 30px 20px; text-align: center; animation: lockDrop .5s cubic-bezier(.22,1,.36,1) both; position: relative; }
+.lock-icon { font-size: 3rem; display: block; margin-bottom: 10px; animation: lockDrop .6s .1s cubic-bezier(.22,1,.36,1) both; }
+.lock-title { font-family: 'Bebas Neue', sans-serif; font-size: 1.4rem; letter-spacing: 3px; color: var(--red); margin-bottom: 20px; }
+.lock-scores { display: flex; justify-content: center; align-items: center; gap: 16px; margin-bottom: 16px; }
 .lock-score-block { text-align: center; }
-.lock-score-name {
-  font-size: .65rem;
-  letter-spacing: 3px;
-  text-transform: uppercase;
-  margin-bottom: 4px;
-}
-.lock-score-pts {
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 3.5rem;
-  line-height: 1;
-}
+.lock-score-name { font-size: .65rem; letter-spacing: 3px; text-transform: uppercase; margin-bottom: 4px; }
+.lock-score-pts { font-family: 'Bebas Neue', sans-serif; font-size: 3.5rem; line-height: 1; }
 .lock-score-block.franco .lock-score-name { color: var(--franco); }
 .lock-score-block.jess   .lock-score-name { color: var(--jess); }
 .lock-score-block.franco .lock-score-pts  { color: var(--franco); }
 .lock-score-block.jess   .lock-score-pts  { color: var(--jess); }
 .lock-vs { font-family: 'Bebas Neue', sans-serif; font-size: 1.5rem; color: var(--border); align-self: center; }
-.lock-winner {
-  font-size: .75rem;
-  letter-spacing: 3px;
-  text-transform: uppercase;
-  color: var(--gray);
-  margin-top: 8px;
-}
+.lock-winner { font-size: .75rem; letter-spacing: 3px; text-transform: uppercase; color: var(--gray); margin-top: 8px; }
 .lock-winner b { color: var(--gold); }
+.locked-result::after { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, transparent, rgba(255,255,255,.03), transparent); background-size: 200% 100%; animation: shimmer 3s linear infinite; border-radius: 10px; pointer-events: none; }
 
-/* Shimmer on locked */
-.locked-result::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,.03), transparent);
-  background-size: 200% 100%;
-  animation: shimmer 3s linear infinite;
-  border-radius: 10px;
-  pointer-events: none;
-}
-.locked-result { position: relative; }
-
-/* ─── MOBILE SAFE ─────────────────────────── */
 @media (max-width: 400px) {
   .score-card-pts { font-size: 3.2rem; }
   .profiles { gap: 24px; }
@@ -621,10 +350,9 @@ body::before {
 </head>
 <body>
 
-<!-- Particles -->
 <div id="particles"></div>
 
-<!-- ════ LOGIN ════ -->
+<!-- ══ LOGIN ══ -->
 <div id="login">
   <div class="login-logo">NETFLIX</div>
   <div class="login-sub">· Puntos ·</div>
@@ -645,7 +373,7 @@ body::before {
   </div>
 </div>
 
-<!-- ════ HEADER ════ -->
+<!-- ══ HEADER ══ -->
 <header id="header">
   <div class="header-logo">NETFLIX</div>
   <div class="header-user">
@@ -654,7 +382,7 @@ body::before {
   </div>
 </header>
 
-<!-- ════ CONTAINER ════ -->
+<!-- ══ CONTAINER ══ -->
 <div class="container">
 
   <!-- HOME -->
@@ -682,6 +410,7 @@ body::before {
     <div id="series-title"></div>
     <select id="season-selector" class="season-select" onchange="renderEpisodes()"></select>
     <div id="ep-list"></div>
+    <button class="btn-add-ep" onclick="openAddEpisodeModal()">+ Agregar capítulo</button>
   </div>
 
   <!-- SCORING -->
@@ -693,7 +422,6 @@ body::before {
 
     <div id="ep-display-name"></div>
 
-    <!-- Scoreboard tiempo real -->
     <div class="scoreboard">
       <div class="score-card franco-card" id="card-franco">
         <div class="score-card-label">Puntos de</div>
@@ -709,7 +437,6 @@ body::before {
       </div>
     </div>
 
-    <!-- Controls (solo visible si no bloqueado) -->
     <div id="active-ui">
       <div class="controls-wrap">
         <div class="controls-label">Dando puntos a: <b id="target-name" style="color:var(--white)"></b></div>
@@ -720,12 +447,11 @@ body::before {
       </div>
       <button class="btn-finish" onclick="lock()">TERMINAR CAPÍTULO</button>
       <div id="sync-dot">
-        <div class="sync-circle on"></div>
-        <span>Tiempo real activo</span>
+        <div class="sync-circle on" id="sync-circle"></div>
+        <span id="sync-text">Tiempo real activo</span>
       </div>
     </div>
 
-    <!-- Locked -->
     <div id="locked-ui" style="display:none">
       <div class="locked-result">
         <span class="lock-icon">🔒</span>
@@ -748,46 +474,114 @@ body::before {
   </div>
 </div>
 
+<!-- ══ MODAL: Agregar capítulo ══ -->
+<div id="modal-overlay" class="modal-overlay" style="display:none" onclick="closeModal(event)">
+  <div class="modal-box">
+    <div class="modal-title">Agregar Capítulo</div>
+    <input id="modal-ep-name" class="modal-input" type="text" placeholder="Nombre del capítulo..." maxlength="80">
+    <div class="modal-btns">
+      <button class="btn-modal-cancel" onclick="closeModalDirect()">Cancelar</button>
+      <button class="btn-modal-ok" onclick="confirmAddEpisode()">Agregar</button>
+    </div>
+  </div>
+</div>
+
 <script>
-/* ═══════════════════════════════════════════════
+/* ══════════════════════════════════
    SUPABASE
-═══════════════════════════════════════════════ */
+══════════════════════════════════ */
 const supa = supabase.createClient(
   'https://xgogmukydlcnznbphjns.supabase.co',
   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inhnb2dtdWt5ZGxjbnpuYnBoam5zIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYyNTE5NjQsImV4cCI6MjA5MTgyNzk2NH0.thIiVyTCwhXY-ZnZAWw3lx8WtagjnZmEjnCAv9N-biU'
 );
 
-/* ═══════════════════════════════════════════════
+/* ══════════════════════════════════
    ESTADO
-═══════════════════════════════════════════════ */
+══════════════════════════════════ */
 let user = '';
 let currentSeriesId = '';
 let currentKey = '';
 let globalData = [];
 let realtimeChannel = null;
 
-/* ═══════════════════════════════════════════════
-   SERIES DATA
-═══════════════════════════════════════════════ */
+/* ══════════════════════════════════
+   SERIES DATA — Boys Over Flowers completo (T1-T5)
+   + Stranger Things T1-T2
+══════════════════════════════════ */
 const series = {
   boys: {
     name: 'Boys Over Flowers',
     seasons: {
-      'Temporada 1': ['Capítulo 1','Capítulo 2','Capítulo 3','Capítulo 4','Capítulo 5']
+      'Temporada 1': [
+        'Capítulo 1','Capítulo 2','Capítulo 3','Capítulo 4','Capítulo 5',
+        'Capítulo 6','Capítulo 7','Capítulo 8','Capítulo 9','Capítulo 10',
+        'Capítulo 11','Capítulo 12','Capítulo 13','Capítulo 14','Capítulo 15',
+        'Capítulo 16','Capítulo 17','Capítulo 18','Capítulo 19','Capítulo 20',
+        'Capítulo 21','Capítulo 22','Capítulo 23','Capítulo 24','Capítulo 25'
+      ]
     }
   },
   stranger: {
     name: 'Stranger Things',
     seasons: {
-      'Temporada 1': ['La desaparición de Will','La loca de la calle Maple','Todo está bien','El cuerpo','La pulga y el acróbata'],
-      'Temporada 2': ['Madmax','Truco o trato','El renacuajo','Will el sabio']
+      'Temporada 1': [
+        'La desaparición de Will',
+        'La loca de la calle Maple',
+        'Todo está bien',
+        'El cuerpo',
+        'La pulga y el acróbata',
+        'El monstruo',
+        'La bañera',
+        'El otro lado'
+      ],
+      'Temporada 2': [
+        'Madmax',
+        'Truco o trato',
+        'El renacuajo',
+        'Will el sabio',
+        'Mente de colmena',
+        'El espía',
+        'La máscara de Mowgli',
+        'El lado del revés',
+        'La Puerta'
+      ],
+      'Temporada 3': [
+        'Suze, Casey, y el mar de Starcourt',
+        'Mall Rats',
+        'La bruja del bosque y el armario del vestuario',
+        'La sauna de la prueba',
+        'El caso Flayed',
+        'E Pluribus Unum',
+        'El Mordisco del Ratón',
+        'El Cazador de Monstruos',
+        'La Batalla de Starcourt'
+      ],
+      'Temporada 4': [
+        'El prólogo',
+        'Vecna s Curse',
+        'El cazador',
+        'El capitán de guerra querido',
+        'Proyecto Nina',
+        'El buceo',
+        'El interrogatorio de Eddie',
+        'Papa',
+        'El final de la página 1',
+        'La puerta de Oregon',
+        'La guerra llega a Hawkins',
+        'El padre de Suzy',
+        'El montador de huesos',
+        'Capítulo Especial'
+      ]
     }
   }
 };
 
-/* ═══════════════════════════════════════════════
+/* Episodios extra agregados por usuario (guardados en memoria por sesión) */
+let customEpisodes = {};
+
+/* ══════════════════════════════════
    PARTICLES
-═══════════════════════════════════════════════ */
+══════════════════════════════════ */
 (function spawnParticles() {
   const container = document.getElementById('particles');
   for (let i = 0; i < 18; i++) {
@@ -806,9 +600,9 @@ const series = {
   }
 })();
 
-/* ═══════════════════════════════════════════════
+/* ══════════════════════════════════
    LOGIN
-═══════════════════════════════════════════════ */
+══════════════════════════════════ */
 function startApp(u) {
   user = u;
   const login = document.getElementById('login');
@@ -825,38 +619,92 @@ function startApp(u) {
   subscribeRealtime();
 }
 
-/* ═══════════════════════════════════════════════
-   REALTIME — canal global (escucha todo)
-═══════════════════════════════════════════════ */
+/* ══════════════════════════════════
+   REALTIME — canal persistente + polling de respaldo
+══════════════════════════════════ */
+let pollingInterval = null;
+
 function subscribeRealtime() {
   if (realtimeChannel) supa.removeChannel(realtimeChannel);
 
-  realtimeChannel = supa.channel('game_global')
-    .on('postgres_changes', {
-      event: '*',
-      schema: 'public',
-      table: 'game_state'
-    }, payload => {
-      const newData = payload.new;
-      const idx = globalData.findIndex(d => d.id === newData.id);
-      if (idx !== -1) globalData[idx] = newData;
-      else globalData.push(newData);
+  setSyncStatus('connecting');
 
-      // Refrescar lista de episodios si está visible
-      if (document.getElementById('episodes').classList.contains('active')) {
-        renderEpisodes();
+  realtimeChannel = supa
+    .channel('game_realtime_v2', { config: { broadcast: { self: true } } })
+    .on(
+      'postgres_changes',
+      { event: '*', schema: 'public', table: 'game_state' },
+      payload => {
+        const newData = payload.new;
+        if (!newData || !newData.id) return;
+        const idx = globalData.findIndex(d => d.id === newData.id);
+        if (idx !== -1) globalData[idx] = newData;
+        else globalData.push(newData);
+
+        setSyncStatus('on');
+
+        if (document.getElementById('episodes').classList.contains('active')) {
+          renderEpisodes();
+        }
+        if (document.getElementById('scoring').classList.contains('active') && currentKey === newData.id) {
+          renderScoring(newData);
+        }
       }
-      // Actualizar scoring si es el mismo capítulo
-      if (document.getElementById('scoring').classList.contains('active') && currentKey === newData.id) {
-        renderScoring(newData);
+    )
+    .subscribe(status => {
+      if (status === 'SUBSCRIBED') {
+        setSyncStatus('on');
+        // Cancelar polling si realtime está ok
+        if (pollingInterval) { clearInterval(pollingInterval); pollingInterval = null; }
+      } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+        setSyncStatus('off');
+        startPollingFallback();
       }
-    })
-    .subscribe();
+    });
 }
 
-/* ═══════════════════════════════════════════════
+function startPollingFallback() {
+  if (pollingInterval) return;
+  pollingInterval = setInterval(async () => {
+    if (!currentKey) return;
+    const { data } = await supa.from('game_state').select('*').eq('id', currentKey).single();
+    if (!data) return;
+    const idx = globalData.findIndex(d => d.id === data.id);
+    if (idx !== -1) {
+      // Solo actualizar si realmente cambió
+      const old = globalData[idx];
+      if (old.franco_pts !== data.franco_pts || old.jess_pts !== data.jess_pts || old.is_locked !== data.is_locked) {
+        globalData[idx] = data;
+        if (document.getElementById('scoring').classList.contains('active') && currentKey === data.id) {
+          renderScoring(data);
+        }
+      }
+    }
+  }, 2000);
+}
+
+function setSyncStatus(state) {
+  const circle = document.getElementById('sync-circle');
+  const text   = document.getElementById('sync-text');
+  if (!circle) return;
+  if (state === 'on') {
+    circle.className = 'sync-circle on';
+    circle.style.background = '#2ecc71';
+    if (text) text.innerText = 'Tiempo real activo';
+  } else if (state === 'off') {
+    circle.className = 'sync-circle on';
+    circle.style.background = '#f39c12';
+    if (text) text.innerText = 'Sincronizando...';
+  } else {
+    circle.className = 'sync-circle on';
+    circle.style.background = '#888';
+    if (text) text.innerText = 'Conectando...';
+  }
+}
+
+/* ══════════════════════════════════
    SERIES / EPISODIOS
-═══════════════════════════════════════════════ */
+══════════════════════════════════ */
 async function openSeries(id) {
   currentSeriesId = id;
   document.getElementById('series-title').innerText = series[id].name;
@@ -876,10 +724,17 @@ async function openSeries(id) {
   showView('episodes');
 }
 
+function getAllEpisodes(seriesId, season) {
+  const base = series[seriesId].seasons[season] || [];
+  const customKey = `${seriesId}-${season}`;
+  const extra = customEpisodes[customKey] || [];
+  return [...base, ...extra];
+}
+
 function renderEpisodes() {
   const id = currentSeriesId;
   const season = document.getElementById('season-selector').value;
-  const eps = series[id].seasons[season];
+  const eps = getAllEpisodes(id, season);
   let html = '';
 
   eps.forEach((epName, i) => {
@@ -888,8 +743,6 @@ function renderEpisodes() {
 
     let resHtml = '';
     if (epData?.is_locked) {
-      const winner = epData.franco_pts > epData.jess_pts ? 'Franco'
-                   : epData.jess_pts > epData.franco_pts ? 'Jess' : 'Empate';
       resHtml = `
         <div class="score-pill">
           <span class="pill pill-f">${epData.franco_pts}</span>
@@ -912,9 +765,39 @@ function renderEpisodes() {
   document.getElementById('ep-list').innerHTML = html;
 }
 
-/* ═══════════════════════════════════════════════
+/* ══════════════════════════════════
+   MODAL: AGREGAR CAPÍTULO
+══════════════════════════════════ */
+function openAddEpisodeModal() {
+  document.getElementById('modal-ep-name').value = '';
+  document.getElementById('modal-overlay').style.display = 'flex';
+  setTimeout(() => document.getElementById('modal-ep-name').focus(), 200);
+}
+
+function closeModal(e) {
+  if (e.target === document.getElementById('modal-overlay')) closeModalDirect();
+}
+
+function closeModalDirect() {
+  document.getElementById('modal-overlay').style.display = 'none';
+}
+
+function confirmAddEpisode() {
+  const name = document.getElementById('modal-ep-name').value.trim();
+  if (!name) return;
+
+  const season = document.getElementById('season-selector').value;
+  const customKey = `${currentSeriesId}-${season}`;
+  if (!customEpisodes[customKey]) customEpisodes[customKey] = [];
+  customEpisodes[customKey].push(name);
+
+  closeModalDirect();
+  renderEpisodes();
+}
+
+/* ══════════════════════════════════
    SCORING
-═══════════════════════════════════════════════ */
+══════════════════════════════════ */
 async function openScore(key, name) {
   currentKey = key;
   document.getElementById('ep-display-name').innerText = name;
@@ -922,18 +805,16 @@ async function openScore(key, name) {
   const other = user === 'franco' ? 'jess' : 'franco';
   document.getElementById('target-name').innerText = other.toUpperCase();
 
-  // Marcar cuál card es "mía"
   document.getElementById('card-franco').classList.toggle('my-card', user === 'franco');
   document.getElementById('card-jess').classList.toggle('my-card', user === 'jess');
-
   document.getElementById('tag-franco').innerText = user === 'franco' ? '← TÚ' : '';
-  document.getElementById('tag-jess').innerText = user === 'jess' ? '← TÚ' : '';
+  document.getElementById('tag-jess').innerText   = user === 'jess'   ? '← TÚ' : '';
 
   let data = globalData.find(d => d.id === key);
   if (!data) {
     data = { id: key, franco_pts: 0, jess_pts: 0, is_locked: false };
     globalData.push(data);
-    supa.from('game_state').upsert(data).then();
+    await supa.from('game_state').upsert(data);
   }
 
   renderScoring(data);
@@ -941,7 +822,6 @@ async function openScore(key, name) {
 }
 
 function renderScoring(data) {
-  // Animación bounce en el número que cambió
   const pf = document.getElementById('pts-franco');
   const pj = document.getElementById('pts-jess');
 
@@ -956,8 +836,7 @@ function renderScoring(data) {
 
   if (data.is_locked) {
     document.getElementById('active-ui').style.display = 'none';
-    const locked = document.getElementById('locked-ui');
-    locked.style.display = 'block';
+    document.getElementById('locked-ui').style.display = 'block';
     document.getElementById('lock-franco').innerText = data.franco_pts;
     document.getElementById('lock-jess').innerText   = data.jess_pts;
 
@@ -981,9 +860,9 @@ function bounce(el) {
   el.addEventListener('animationend', () => el.classList.remove('bounce'), { once: true });
 }
 
-/* ═══════════════════════════════════════════════
+/* ══════════════════════════════════
    CONTROLES
-═══════════════════════════════════════════════ */
+══════════════════════════════════ */
 async function change(v) {
   const other = user === 'franco' ? 'jess' : 'franco';
   let data = globalData.find(d => d.id === currentKey);
@@ -992,10 +871,8 @@ async function change(v) {
   const newVal = Math.max(0, (data[`${other}_pts`] || 0) + v);
   data[`${other}_pts`] = newVal;
 
-  // Update visual instantly
   renderScoring(data);
 
-  // Persist
   await supa.from('game_state').upsert({
     id: currentKey,
     franco_pts: data.franco_pts,
@@ -1013,15 +890,23 @@ async function lock() {
   await supa.from('game_state').update({ is_locked: true }).eq('id', currentKey);
 }
 
-/* ═══════════════════════════════════════════════
+/* ══════════════════════════════════
    NAVEGACIÓN
-═══════════════════════════════════════════════ */
+══════════════════════════════════ */
 function showView(id) {
   document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
   document.getElementById(id).classList.add('active');
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
-</script>
 
+/* ══════════════════════════════════
+   SERVICE WORKER (PWA)
+══════════════════════════════════ */
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js').catch(() => {});
+  });
+}
+</script>
 </body>
 </html>
