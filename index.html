@@ -3,480 +3,1023 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Netflix</title>
-
+<title>Netflix · Puntos</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <style>
 :root {
-    --n-red: #E50914;
-    --n-black: #000000;
-    --n-dark: #141414;
-    --n-gray: #808080;
+  --red: #E50914;
+  --red-dim: #8b0000;
+  --black: #000;
+  --dark: #0d0d0d;
+  --card: #161616;
+  --border: #2a2a2a;
+  --gray: #666;
+  --silver: #aaa;
+  --white: #f0f0f0;
+  --gold: #f5c518;
+  --franco: #4fc3f7;
+  --jess: #f48fb1;
 }
 
-* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
 
 body {
-    margin: 0;
-    background-color: var(--n-black);
-    color: white;
-    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-    user-select: none;
+  background: var(--black);
+  color: var(--white);
+  font-family: 'DM Sans', sans-serif;
+  min-height: 100vh;
+  overflow-x: hidden;
 }
 
-/* LOGIN */
-#login {
-    height: 100vh;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    transition: opacity 0.4s ease;
-    background-color: var(--n-black);
-    z-index: 1000;
+/* ─── NOISE OVERLAY ─────────────────────────── */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 9999;
+  opacity: .5;
 }
 
-#login h1 { font-size: 1.8rem; font-weight: 400; margin-bottom: 30px; }
-
-.profile-box { display: flex; gap: 30px; }
-
-.profile { text-align: center; cursor: pointer; transition: transform 0.2s; }
-.profile:active { transform: scale(0.95); }
-.profile img {
-    width: 100px;
-    height: 100px;
-    border-radius: 4px;
-    object-fit: cover;
-    border: 2px solid transparent;
+/* ─── ANIMATIONS ─────────────────────────────── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(24px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
-.profile:active img { border-color: white; }
-.profile p { color: var(--n-gray); margin-top: 10px; font-size: 1rem; }
-
-/* HEADER */
-header {
-    display: none;
-    padding: 15px 5%;
-    justify-content: space-between;
-    align-items: center;
-    background: linear-gradient(to bottom, rgba(0,0,0,0.9) 0%, transparent 100%);
-    position: sticky;
-    top: 0;
-    z-index: 100;
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(.92); }
+  to   { opacity: 1; transform: scale(1); }
+}
+@keyframes pulse-ring {
+  0%   { box-shadow: 0 0 0 0 rgba(229,9,20,.4); }
+  70%  { box-shadow: 0 0 0 18px rgba(229,9,20,0); }
+  100% { box-shadow: 0 0 0 0 rgba(229,9,20,0); }
+}
+@keyframes countBounce {
+  0%  { transform: scale(1); }
+  30% { transform: scale(1.25); }
+  60% { transform: scale(.95); }
+  100%{ transform: scale(1); }
+}
+@keyframes lockDrop {
+  0%   { transform: scale(2) rotate(-10deg); opacity: 0; }
+  60%  { transform: scale(.9) rotate(4deg); opacity: 1; }
+  100% { transform: scale(1) rotate(0deg); opacity: 1; }
+}
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+@keyframes slideIn {
+  from { opacity: 0; transform: translateX(-30px); }
+  to   { opacity: 1; transform: translateX(0); }
 }
 
-.logo { color: var(--n-red); font-weight: bold; font-size: 1.5rem; letter-spacing: -1px; }
-.user-tag { font-size: 0.8rem; color: var(--n-gray); text-align: right; }
-.user-tag b { color: white; display: block; font-size: 0.9rem; }
+.anim-fadeup { animation: fadeUp .45s cubic-bezier(.22,1,.36,1) both; }
+.anim-scalein { animation: scaleIn .35s cubic-bezier(.22,1,.36,1) both; }
+.anim-fadein  { animation: fadeIn .4s ease both; }
 
-.container { padding: 0 5% 30px 5%; }
-
+/* ─── VIEW SYSTEM ─────────────────────────────── */
 .view { display: none; }
-.active { display: block; }
+.view.active { display: block; animation: fadeUp .4s cubic-bezier(.22,1,.36,1) both; }
 
-/* GRID SERIES */
-h3 { font-size: 1.2rem; margin-top: 10px; margin-bottom: 15px; font-weight: 500; }
+/* ─── PARTICLES ─────────────────────────────── */
+#particles {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+}
+.particle {
+  position: absolute;
+  width: 2px; height: 2px;
+  border-radius: 50%;
+  background: var(--red);
+  opacity: 0;
+  animation: floatParticle linear infinite;
+}
+@keyframes floatParticle {
+  0%   { transform: translateY(100vh) scale(0); opacity: 0; }
+  10%  { opacity: .6; }
+  90%  { opacity: .3; }
+  100% { transform: translateY(-10vh) scale(1.5); opacity: 0; }
+}
+
+/* ─── LOGIN ─────────────────────────────────── */
+#login {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 0;
+  position: relative;
+  z-index: 10;
+}
+
+.login-logo {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 3.5rem;
+  color: var(--red);
+  letter-spacing: 3px;
+  margin-bottom: 8px;
+  animation: fadeUp .6s cubic-bezier(.22,1,.36,1) both;
+}
+.login-sub {
+  font-size: .75rem;
+  color: var(--gray);
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  margin-bottom: 50px;
+  animation: fadeUp .6s .1s cubic-bezier(.22,1,.36,1) both;
+}
+.login-q {
+  font-size: 1rem;
+  color: var(--silver);
+  margin-bottom: 36px;
+  font-weight: 300;
+  animation: fadeUp .6s .15s cubic-bezier(.22,1,.36,1) both;
+}
+
+.profiles {
+  display: flex;
+  gap: 36px;
+}
+
+.profile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  cursor: pointer;
+  animation: fadeUp .6s .25s cubic-bezier(.22,1,.36,1) both;
+}
+.profile:nth-child(2) { animation-delay: .35s; }
+
+.profile-avatar {
+  width: 108px;
+  height: 108px;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 2px solid transparent;
+  transition: border-color .2s, transform .2s, box-shadow .2s;
+  position: relative;
+}
+.profile-avatar::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to bottom, transparent 60%, rgba(0,0,0,.5));
+}
+.profile-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.profile:active .profile-avatar {
+  border-color: var(--white);
+  transform: scale(.96);
+  box-shadow: 0 0 30px rgba(229,9,20,.3);
+}
+.profile-name {
+  font-size: .85rem;
+  color: var(--silver);
+  letter-spacing: 1px;
+  transition: color .2s;
+}
+.profile:active .profile-name { color: var(--white); }
+
+/* Franco / Jess color themes */
+.profile-franco .profile-avatar { box-shadow: 0 4px 20px rgba(79,195,247,.15); }
+.profile-jess   .profile-avatar { box-shadow: 0 4px 20px rgba(244,143,177,.15); }
+.profile-franco:active .profile-avatar { border-color: var(--franco) !important; box-shadow: 0 0 30px rgba(79,195,247,.4) !important; }
+.profile-jess:active   .profile-avatar { border-color: var(--jess) !important;   box-shadow: 0 0 30px rgba(244,143,177,.4) !important; }
+
+/* ─── HEADER ─────────────────────────────────── */
+#header {
+  display: none;
+  padding: 16px 5%;
+  justify-content: space-between;
+  align-items: center;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: linear-gradient(to bottom, rgba(0,0,0,.95) 0%, rgba(0,0,0,.0) 100%);
+  backdrop-filter: blur(2px);
+}
+
+.header-logo {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.7rem;
+  color: var(--red);
+  letter-spacing: 2px;
+}
+.header-user {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.header-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--red);
+  animation: pulse-ring 2s ease infinite;
+}
+.header-name {
+  font-size: .8rem;
+  color: var(--silver);
+  font-weight: 300;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+.header-name b { color: var(--white); font-weight: 700; }
+
+/* ─── CONTAINER ─────────────────────────────── */
+.container {
+  padding: 0 5% 60px;
+  position: relative;
+  z-index: 1;
+}
+
+/* ─── HOME ─────────────────────────────────── */
+.section-label {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.4rem;
+  letter-spacing: 2px;
+  color: var(--silver);
+  margin: 24px 0 16px;
+}
 
 .grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 12px;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 14px;
 }
 
 .card {
-    position: relative;
-    cursor: pointer;
-    border-radius: 4px;
-    overflow: hidden;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.6);
+  position: relative;
+  cursor: pointer;
+  border-radius: 6px;
+  overflow: hidden;
+  box-shadow: 0 8px 30px rgba(0,0,0,.7);
+  transition: transform .25s cubic-bezier(.22,1,.36,1), box-shadow .25s;
 }
-
+.card:active {
+  transform: scale(.97);
+  box-shadow: 0 4px 15px rgba(0,0,0,.8);
+}
 .card img {
-    width: 100%;
-    height: auto;
-    display: block;
+  width: 100%;
+  height: auto;
+  display: block;
 }
+.card-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(0,0,0,.7) 0%, transparent 50%);
+  transition: opacity .2s;
+}
+.card:active .card-overlay { opacity: .8; }
 
 .badge {
-    position: absolute;
-    top: 6px;
-    right: 6px;
-    background-color: var(--n-red);
-    color: white;
-    font-size: 0.6rem;
-    font-weight: bold;
-    padding: 3px 6px;
-    border-radius: 3px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.5);
+  position: absolute;
+  top: 8px; right: 8px;
+  background: var(--red);
+  color: #fff;
+  font-size: .55rem;
+  font-weight: 700;
+  padding: 4px 7px;
+  border-radius: 3px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
 }
 
-/* EPISODIOS */
+/* ─── BACK BTN ─────────────────────────────── */
 .back-btn {
-    padding: 15px 0;
-    color: #b3b3b3;
-    font-size: 1rem;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 8px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 20px 0 10px;
+  color: var(--silver);
+  font-size: .85rem;
+  cursor: pointer;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  transition: color .2s;
 }
+.back-btn:active { color: var(--white); }
+.back-arrow {
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  background: var(--card);
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: .9rem;
+  transition: background .2s;
+}
+.back-btn:active .back-arrow { background: var(--red); border-color: var(--red); }
 
-#title { font-size: 1.5rem; margin-bottom: 15px; }
+/* ─── EPISODES ─────────────────────────────── */
+#series-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 2rem;
+  letter-spacing: 2px;
+  margin-bottom: 16px;
+}
 
 .season-select {
-    background: #333;
-    color: white;
-    border: none;
-    padding: 10px 15px;
-    font-size: 1rem;
-    border-radius: 4px;
-    margin-bottom: 20px;
-    width: 100%;
-    outline: none;
+  background: var(--card);
+  color: var(--white);
+  border: 1px solid var(--border);
+  padding: 12px 16px;
+  font-size: .9rem;
+  font-family: 'DM Sans', sans-serif;
+  border-radius: 6px;
+  margin-bottom: 24px;
+  width: 100%;
+  outline: none;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23666' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
 }
 
 .ep-row {
-    padding: 18px 0;
-    border-bottom: 1px solid #222;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    cursor: pointer;
+  padding: 18px 14px;
+  border-bottom: 1px solid #1a1a1a;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: background .15s;
+  gap: 12px;
 }
-.ep-info { display: flex; flex-direction: column; gap: 4px; }
-.ep-name { font-size: 1rem; color: #fff; }
-.ep-res { font-size: 0.8rem; color: var(--n-gray); }
+.ep-row:active { background: rgba(255,255,255,.04); }
 
-/* SCORING */
-#ep-name { text-align: center; color: var(--n-gray); font-size: 1rem; font-weight: 400; margin-bottom: 30px; }
+.ep-info { display: flex; flex-direction: column; gap: 5px; flex: 1; min-width: 0; }
+.ep-num  { font-family: 'Bebas Neue', sans-serif; font-size: 1.6rem; color: var(--border); line-height: 1; width: 32px; flex-shrink: 0; }
+.ep-name { font-size: .95rem; color: var(--white); font-weight: 500; }
+.ep-res  { font-size: .75rem; color: var(--gray); }
+.ep-icon { font-size: 1.1rem; flex-shrink: 0; }
 
-#active-ui p { text-align: center; color: var(--n-gray); text-transform: uppercase; font-size: 0.8rem; letter-spacing: 1px; }
-#target { text-align: center; font-size: 2.5rem; margin-top: 0; letter-spacing: 2px; }
+/* Score pill in list */
+.score-pill {
+  display: flex;
+  gap: 4px;
+  font-size: .7rem;
+}
+.pill { padding: 3px 8px; border-radius: 20px; font-weight: 700; }
+.pill-f { background: rgba(79,195,247,.15); color: var(--franco); }
+.pill-j { background: rgba(244,143,177,.15); color: var(--jess); }
 
+/* ─── SCORING VIEW ─────────────────────────── */
+#ep-display-name {
+  text-align: center;
+  color: var(--silver);
+  font-size: .8rem;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  margin-bottom: 28px;
+  font-weight: 300;
+}
+
+/* Scoreboard 2 jugadores */
+.scoreboard {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin-bottom: 36px;
+}
+
+.score-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 20px 16px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+  transition: border-color .3s, box-shadow .3s;
+}
+.score-card.my-card {
+  border-color: rgba(229,9,20,.4);
+  box-shadow: 0 0 20px rgba(229,9,20,.1);
+}
+.score-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: var(--border);
+  transition: background .3s;
+}
+.score-card.my-card::before { background: var(--red); }
+
+.score-card.franco-card::before { background: var(--franco); }
+.score-card.jess-card::before   { background: var(--jess); }
+.score-card.franco-card { border-color: rgba(79,195,247,.3); box-shadow: 0 0 20px rgba(79,195,247,.07); }
+.score-card.jess-card   { border-color: rgba(244,143,177,.3); box-shadow: 0 0 20px rgba(244,143,177,.07); }
+
+.score-card-label {
+  font-size: .65rem;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--gray);
+  margin-bottom: 8px;
+  font-weight: 500;
+}
+.score-card-name {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.1rem;
+  letter-spacing: 2px;
+  margin-bottom: 10px;
+}
+.score-card.franco-card .score-card-name { color: var(--franco); }
+.score-card.jess-card   .score-card-name { color: var(--jess); }
+
+.score-card-pts {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 4rem;
+  line-height: 1;
+  transition: transform .15s cubic-bezier(.22,1,.36,1);
+}
+.score-card-pts.bounce { animation: countBounce .3s cubic-bezier(.22,1,.36,1); }
+
+.score-card-tag {
+  font-size: .6rem;
+  color: var(--gray);
+  margin-top: 6px;
+  letter-spacing: 2px;
+}
+
+/* Controls */
+.controls-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+  margin-bottom: 30px;
+}
+.controls-label {
+  font-size: .7rem;
+  text-transform: uppercase;
+  letter-spacing: 3px;
+  color: var(--gray);
+}
 .controls {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 30px;
-    margin: 40px 0;
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+.ctrl-btn {
+  width: 64px; height: 64px;
+  border-radius: 50%;
+  font-size: 1.8rem;
+  background: var(--card);
+  color: var(--white);
+  border: 1px solid var(--border);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  transition: background .15s, border-color .15s, transform .1s;
+  line-height: 1;
+}
+.ctrl-btn:active {
+  background: var(--red);
+  border-color: var(--red);
+  transform: scale(.92);
 }
 
-.btn {
-    width: 70px;
-    height: 70px;
-    border-radius: 50%;
-    font-size: 2.5rem;
-    background: #222;
-    color: white;
-    border: 1px solid #444;
-    display: flex;
-    justify-content: center;
-    align-items: center;
+.btn-finish {
+  width: 100%;
+  padding: 18px;
+  background: var(--red);
+  color: #fff;
+  border: none;
+  font-size: 1rem;
+  font-family: 'Bebas Neue', sans-serif;
+  letter-spacing: 3px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background .2s, transform .1s;
+  animation: pulse-ring 2.5s ease infinite;
 }
-.btn:active { background: var(--n-red); border-color: var(--n-red); }
+.btn-finish:active { background: var(--red-dim); transform: scale(.98); }
 
-.num { font-size: 4.5rem; font-weight: bold; width: 80px; text-align: center; }
-
-.btn-fin {
-    width: 100%;
-    padding: 18px;
-    margin-top: 20px;
-    background: var(--n-red);
-    color: white;
-    border: none;
-    font-size: 1.1rem;
-    font-weight: bold;
-    border-radius: 4px;
+/* Sync indicator */
+#sync-dot {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: .65rem;
+  color: var(--gray);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-top: 18px;
 }
-
-.locked {
-    background: #111;
-    padding: 30px 20px;
-    text-align: center;
-    border-radius: 8px;
-    border: 1px solid #333;
-    margin-top: 20px;
+.sync-circle {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: #2ecc71;
 }
-.locked h3 { color: var(--n-red); margin-top: 0; }
-.locked p { font-size: 1.3rem; font-weight: bold; margin-bottom: 0; }
+.sync-circle.off { background: var(--gray); animation: none; }
+@keyframes syncPulse { 0%,100%{opacity:1}50%{opacity:.4} }
+.sync-circle.on { animation: syncPulse 1.5s ease infinite; }
 
-/* Indicador de Sincronización */
-#sync-status { text-align:center; font-size:0.7rem; color:#444; margin-top: 20px; }
+/* Locked result */
+.locked-result {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 30px 20px;
+  text-align: center;
+  animation: lockDrop .5s cubic-bezier(.22,1,.36,1) both;
+}
+.lock-icon {
+  font-size: 3rem;
+  display: block;
+  margin-bottom: 10px;
+  animation: lockDrop .6s .1s cubic-bezier(.22,1,.36,1) both;
+}
+.lock-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.4rem;
+  letter-spacing: 3px;
+  color: var(--red);
+  margin-bottom: 20px;
+}
+.lock-scores {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+.lock-score-block { text-align: center; }
+.lock-score-name {
+  font-size: .65rem;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+.lock-score-pts {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 3.5rem;
+  line-height: 1;
+}
+.lock-score-block.franco .lock-score-name { color: var(--franco); }
+.lock-score-block.jess   .lock-score-name { color: var(--jess); }
+.lock-score-block.franco .lock-score-pts  { color: var(--franco); }
+.lock-score-block.jess   .lock-score-pts  { color: var(--jess); }
+.lock-vs { font-family: 'Bebas Neue', sans-serif; font-size: 1.5rem; color: var(--border); align-self: center; }
+.lock-winner {
+  font-size: .75rem;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--gray);
+  margin-top: 8px;
+}
+.lock-winner b { color: var(--gold); }
+
+/* Shimmer on locked */
+.locked-result::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.03), transparent);
+  background-size: 200% 100%;
+  animation: shimmer 3s linear infinite;
+  border-radius: 10px;
+  pointer-events: none;
+}
+.locked-result { position: relative; }
+
+/* ─── MOBILE SAFE ─────────────────────────── */
+@media (max-width: 400px) {
+  .score-card-pts { font-size: 3.2rem; }
+  .profiles { gap: 24px; }
+  .profile-avatar { width: 90px; height: 90px; }
+}
 </style>
 </head>
-
 <body>
 
+<!-- Particles -->
+<div id="particles"></div>
+
+<!-- ════ LOGIN ════ -->
 <div id="login">
-    <h1>¿Quién está viendo?</h1>
-    <div class="profile-box">
-        <div class="profile" onclick="startApp('franco')">
-            <img src="https://upload.wikimedia.org/wikipedia/commons/0/0b/Netflix-avatar.png" alt="Franco">
-            <p>Franco</p>
-        </div>
-        <div class="profile" onclick="startApp('jess')">
-            <img src="https://i.pinimg.com/originals/0d/dc/ca/0ddccae723d85a703b798a5e682c23c1.png" alt="Jess">
-            <p>Jess</p>
-        </div>
+  <div class="login-logo">NETFLIX</div>
+  <div class="login-sub">· Puntos ·</div>
+  <div class="login-q">¿Quién está viendo?</div>
+  <div class="profiles">
+    <div class="profile profile-franco" onclick="startApp('franco')">
+      <div class="profile-avatar">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/0/0b/Netflix-avatar.png" alt="Franco">
+      </div>
+      <div class="profile-name">FRANCO</div>
     </div>
+    <div class="profile profile-jess" onclick="startApp('jess')">
+      <div class="profile-avatar">
+        <img src="https://i.pinimg.com/originals/0d/dc/ca/0ddccae723d85a703b798a5e682c23c1.png" alt="Jess">
+      </div>
+      <div class="profile-name">JESS</div>
+    </div>
+  </div>
 </div>
 
+<!-- ════ HEADER ════ -->
 <header id="header">
-    <div class="logo">NETFLIX</div>
-    <div class="user-tag">Viendo como <b id="u-name"></b></div>
+  <div class="header-logo">NETFLIX</div>
+  <div class="header-user">
+    <div class="header-dot"></div>
+    <div class="header-name">Viendo como <b id="u-name"></b></div>
+  </div>
 </header>
 
+<!-- ════ CONTAINER ════ -->
 <div class="container">
 
-    <div id="home" class="view">
-        <h3>Mi lista</h3>
-        <div class="grid">
-            <div class="card" onclick="openSeries('boys')">
-                <div class="badge">TERMINADA</div>
-                <img src="img/serie1.png" alt="Boys Over Flowers">
-            </div>
-            <div class="card" onclick="openSeries('stranger')">
-                <img src="img/serie2.jpg" alt="Stranger Things">
-            </div>
-        </div>
+  <!-- HOME -->
+  <div id="home" class="view">
+    <div class="section-label">Mi lista</div>
+    <div class="grid">
+      <div class="card" onclick="openSeries('boys')">
+        <img src="img/serie1.png" alt="Boys Over Flowers" onerror="this.src='https://via.placeholder.com/300x450/161616/E50914?text=Boys+Over+Flowers'">
+        <div class="card-overlay"></div>
+        <div class="badge">Terminada</div>
+      </div>
+      <div class="card" onclick="openSeries('stranger')">
+        <img src="img/serie2.jpg" alt="Stranger Things" onerror="this.src='https://via.placeholder.com/300x450/161616/E50914?text=Stranger+Things'">
+        <div class="card-overlay"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- EPISODES -->
+  <div id="episodes" class="view">
+    <div class="back-btn" onclick="showView('home')">
+      <div class="back-arrow">←</div>
+      Inicio
+    </div>
+    <div id="series-title"></div>
+    <select id="season-selector" class="season-select" onchange="renderEpisodes()"></select>
+    <div id="ep-list"></div>
+  </div>
+
+  <!-- SCORING -->
+  <div id="scoring" class="view">
+    <div class="back-btn" onclick="showView('episodes')">
+      <div class="back-arrow">←</div>
+      Episodios
     </div>
 
-    <div id="episodes" class="view">
-        <div class="back-btn" onclick="showView('home')">← Volver a inicio</div>
-        <h2 id="title"></h2>
-        
-        <select id="season-selector" class="season-select" onchange="renderEpisodes()">
-            </select>
+    <div id="ep-display-name"></div>
 
-        <div id="list"></div>
+    <!-- Scoreboard tiempo real -->
+    <div class="scoreboard">
+      <div class="score-card franco-card" id="card-franco">
+        <div class="score-card-label">Puntos de</div>
+        <div class="score-card-name">FRANCO</div>
+        <div class="score-card-pts" id="pts-franco">0</div>
+        <div class="score-card-tag" id="tag-franco"></div>
+      </div>
+      <div class="score-card jess-card" id="card-jess">
+        <div class="score-card-label">Puntos de</div>
+        <div class="score-card-name">JESS</div>
+        <div class="score-card-pts" id="pts-jess">0</div>
+        <div class="score-card-tag" id="tag-jess"></div>
+      </div>
     </div>
 
-    <div id="scoring" class="view">
-        <div class="back-btn" onclick="showView('episodes')">← Volver a episodios</div>
-        
-        <h3 id="ep-name"></h3>
-
-        <div id="active-ui">
-            <p>Dando puntos a:</p>
-            <h2 id="target"></h2>
-
-            <div class="controls">
-                <button class="btn" onclick="change(-1)">-</button>
-                <div class="num" id="pts">0</div>
-                <button class="btn" onclick="change(1)">+</button>
-            </div>
-
-            <button class="btn-fin" onclick="lock()">TERMINAR CAPÍTULO</button>
-            <div id="sync-status">Sincronizado en tiempo real 🟢</div>
+    <!-- Controls (solo visible si no bloqueado) -->
+    <div id="active-ui">
+      <div class="controls-wrap">
+        <div class="controls-label">Dando puntos a: <b id="target-name" style="color:var(--white)"></b></div>
+        <div class="controls">
+          <button class="ctrl-btn" onclick="change(-1)">−</button>
+          <button class="ctrl-btn" onclick="change(1)">+</button>
         </div>
-
-        <div id="locked-ui" class="locked" style="display:none">
-            <h3>🔒 RESULTADO FINAL</h3>
-            <p id="result"></p>
-        </div>
+      </div>
+      <button class="btn-finish" onclick="lock()">TERMINAR CAPÍTULO</button>
+      <div id="sync-dot">
+        <div class="sync-circle on"></div>
+        <span>Tiempo real activo</span>
+      </div>
     </div>
 
+    <!-- Locked -->
+    <div id="locked-ui" style="display:none">
+      <div class="locked-result">
+        <span class="lock-icon">🔒</span>
+        <div class="lock-title">Resultado Final</div>
+        <div class="lock-scores">
+          <div class="lock-score-block franco">
+            <div class="lock-score-name">Franco</div>
+            <div class="lock-score-pts" id="lock-franco">0</div>
+          </div>
+          <div class="lock-vs">VS</div>
+          <div class="lock-score-block jess">
+            <div class="lock-score-name">Jess</div>
+            <div class="lock-score-pts" id="lock-jess">0</div>
+          </div>
+        </div>
+        <div class="lock-winner" id="lock-winner"></div>
+      </div>
+    </div>
+
+  </div>
 </div>
 
 <script>
-// 🔥 CONFIGURA TU URL Y KEY AQUÍ
+/* ═══════════════════════════════════════════════
+   SUPABASE
+═══════════════════════════════════════════════ */
 const supa = supabase.createClient(
-    'https://xgogmukydlcnznbphjns.supabase.co',
-    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inhnb2dtdWt5ZGxjbnpuYnBoam5zIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYyNTE5NjQsImV4cCI6MjA5MTgyNzk2NH0.thIiVyTCwhXY-ZnZAWw3lx8WtagjnZmEjnCAv9N-biU' // <-- PON TU KEY PÚBLICA AQUÍ
+  'https://xgogmukydlcnznbphjns.supabase.co',
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inhnb2dtdWt5ZGxjbnpuYnBoam5zIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYyNTE5NjQsImV4cCI6MjA5MTgyNzk2NH0.thIiVyTCwhXY-ZnZAWw3lx8WtagjnZmEjnCAv9N-biU'
 );
 
+/* ═══════════════════════════════════════════════
+   ESTADO
+═══════════════════════════════════════════════ */
 let user = '';
 let currentSeriesId = '';
 let currentKey = '';
-let globalData = []; 
+let globalData = [];
+let realtimeChannel = null;
 
-// Estructura con Temporadas
+/* ═══════════════════════════════════════════════
+   SERIES DATA
+═══════════════════════════════════════════════ */
 const series = {
-    boys: { 
-        name: "Boys Over Flowers", 
-        seasons: {
-            "Temporada 1": ["Capítulo 1", "Capítulo 2", "Capítulo 3", "Capítulo 4", "Capítulo 5"]
-        }
-    },
-    stranger: { 
-        name: "Stranger Things", 
-        seasons: {
-            "Temporada 1": ["La desaparición de Will", "La loca de la calle Maple", "Todo está bien", "El cuerpo", "La pulga y el acróbata"],
-            "Temporada 2": ["Madmax", "Truco o trato", "El renacuajo", "Will el sabio"]
-        }
+  boys: {
+    name: 'Boys Over Flowers',
+    seasons: {
+      'Temporada 1': ['Capítulo 1','Capítulo 2','Capítulo 3','Capítulo 4','Capítulo 5']
     }
+  },
+  stranger: {
+    name: 'Stranger Things',
+    seasons: {
+      'Temporada 1': ['La desaparición de Will','La loca de la calle Maple','Todo está bien','El cuerpo','La pulga y el acróbata'],
+      'Temporada 2': ['Madmax','Truco o trato','El renacuajo','Will el sabio']
+    }
+  }
 };
 
-// --- TIEMPO REAL: LA MAGIA ---
-supa.channel('juego_en_vivo')
-  .on('postgres_changes', { event: '*', schema: 'public', table: 'game_state' }, payload => {
-    const newData = payload.new;
-    
-    // 1. Actualizar memoria local
-    const index = globalData.findIndex(d => d.id === newData.id);
-    if (index !== -1) globalData[index] = newData;
-    else globalData.push(newData);
+/* ═══════════════════════════════════════════════
+   PARTICLES
+═══════════════════════════════════════════════ */
+(function spawnParticles() {
+  const container = document.getElementById('particles');
+  for (let i = 0; i < 18; i++) {
+    const p = document.createElement('div');
+    p.className = 'particle';
+    p.style.cssText = `
+      left: ${Math.random()*100}%;
+      width: ${1+Math.random()*2}px;
+      height: ${1+Math.random()*2}px;
+      animation-duration: ${6+Math.random()*10}s;
+      animation-delay: ${Math.random()*10}s;
+      opacity: ${.3+Math.random()*.5};
+      background: ${Math.random()>.6 ? '#E50914' : '#333'};
+    `;
+    container.appendChild(p);
+  }
+})();
 
-    // 2. Si estamos viendo la lista de capítulos, refrescarla sola
-    if (document.getElementById('episodes').classList.contains('active')) {
-        renderEpisodes();
-    }
-
-    // 3. Si estamos dentro del MISMO capítulo que el otro modificó, actualizar número
-    if (document.getElementById('scoring').classList.contains('active') && currentKey === newData.id) {
-        updatePointUI(newData);
-    }
-  })
-  .subscribe();
-
-// LOGIN
+/* ═══════════════════════════════════════════════
+   LOGIN
+═══════════════════════════════════════════════ */
 function startApp(u) {
-    user = u;
-    const login = document.getElementById('login');
-    login.style.opacity = '0';
-    setTimeout(() => { login.style.display = 'none'; }, 400);
+  user = u;
+  const login = document.getElementById('login');
+  login.style.transition = 'opacity .4s ease, transform .4s ease';
+  login.style.opacity = '0';
+  login.style.transform = 'scale(.96)';
+  setTimeout(() => { login.style.display = 'none'; }, 420);
 
-    document.getElementById('header').style.display = 'flex';
-    document.getElementById('u-name').innerText = u.toUpperCase();
-    showView('home');
+  const header = document.getElementById('header');
+  header.style.display = 'flex';
+  document.getElementById('u-name').innerText = u.toUpperCase();
+
+  showView('home');
+  subscribeRealtime();
 }
 
-// ABRIR SERIE Y SELECCIONAR TEMPORADA
+/* ═══════════════════════════════════════════════
+   REALTIME — canal global (escucha todo)
+═══════════════════════════════════════════════ */
+function subscribeRealtime() {
+  if (realtimeChannel) supa.removeChannel(realtimeChannel);
+
+  realtimeChannel = supa.channel('game_global')
+    .on('postgres_changes', {
+      event: '*',
+      schema: 'public',
+      table: 'game_state'
+    }, payload => {
+      const newData = payload.new;
+      const idx = globalData.findIndex(d => d.id === newData.id);
+      if (idx !== -1) globalData[idx] = newData;
+      else globalData.push(newData);
+
+      // Refrescar lista de episodios si está visible
+      if (document.getElementById('episodes').classList.contains('active')) {
+        renderEpisodes();
+      }
+      // Actualizar scoring si es el mismo capítulo
+      if (document.getElementById('scoring').classList.contains('active') && currentKey === newData.id) {
+        renderScoring(newData);
+      }
+    })
+    .subscribe();
+}
+
+/* ═══════════════════════════════════════════════
+   SERIES / EPISODIOS
+═══════════════════════════════════════════════ */
 async function openSeries(id) {
-    currentSeriesId = id;
-    document.getElementById('title').innerText = series[id].name;
-    
-    const selector = document.getElementById('season-selector');
-    selector.innerHTML = '';
-    
-    Object.keys(series[id].seasons).forEach(season => {
-        const option = document.createElement('option');
-        option.value = season;
-        option.innerText = season;
-        selector.appendChild(option);
-    });
+  currentSeriesId = id;
+  document.getElementById('series-title').innerText = series[id].name;
 
-    // Traer datos rápido
-    const { data } = await supa.from('game_state').select('*');
-    if(data) globalData = data;
+  const selector = document.getElementById('season-selector');
+  selector.innerHTML = '';
+  Object.keys(series[id].seasons).forEach(s => {
+    const opt = document.createElement('option');
+    opt.value = s; opt.innerText = s;
+    selector.appendChild(opt);
+  });
 
-    renderEpisodes();
-    showView('episodes');
+  const { data } = await supa.from('game_state').select('*');
+  if (data) globalData = data;
+
+  renderEpisodes();
+  showView('episodes');
 }
 
-// RENDERIZAR LA LISTA (Ahora no se congela al entrar)
 function renderEpisodes() {
-    const list = document.getElementById('list');
-    const id = currentSeriesId;
-    const season = document.getElementById('season-selector').value;
-    const eps = series[id].seasons[season];
-    
-    let htmlContent = '';
+  const id = currentSeriesId;
+  const season = document.getElementById('season-selector').value;
+  const eps = series[id].seasons[season];
+  let html = '';
 
-    for (let i = 0; i < eps.length; i++) {
-        const safeSeason = season.replace(/\s+/g, '');
-        const key = `${id}-${safeSeason}-${i}`;
-        
-        const epData = globalData.find(d => d.id === key);
+  eps.forEach((epName, i) => {
+    const key = `${id}-${season.replace(/\s+/g,'')}-${i}`;
+    const epData = globalData.find(d => d.id === key);
 
-        let resText = '';
-        if (epData?.is_locked) {
-            const winner = epData.franco_pts > epData.jess_pts ? 'Franco' : (epData.jess_pts > epData.franco_pts ? 'Jess' : 'Empate');
-            resText = `Ganó ${winner} (${epData.franco_pts} - ${epData.jess_pts})`;
-        }
-
-        htmlContent += `
-        <div class="ep-row" onclick="openScore('${key}', '${eps[i]}')">
-            <div class="ep-info">
-                <span class="ep-name">${i + 1}. ${eps[i]}</span>
-                <span class="ep-res">${resText}</span>
-            </div>
-            <span style="color:var(--n-red); font-size:1.2rem;">${epData?.is_locked ? '🔒' : '▶'}</span>
+    let resHtml = '';
+    if (epData?.is_locked) {
+      const winner = epData.franco_pts > epData.jess_pts ? 'Franco'
+                   : epData.jess_pts > epData.franco_pts ? 'Jess' : 'Empate';
+      resHtml = `
+        <div class="score-pill">
+          <span class="pill pill-f">${epData.franco_pts}</span>
+          <span style="color:var(--border);font-size:.7rem;align-self:center">vs</span>
+          <span class="pill pill-j">${epData.jess_pts}</span>
         </div>`;
     }
-    
-    list.innerHTML = htmlContent;
+
+    html += `
+      <div class="ep-row" onclick="openScore('${key}','${epName.replace(/'/g,"\\'")}')">
+        <div class="ep-num">${String(i+1).padStart(2,'0')}</div>
+        <div class="ep-info">
+          <span class="ep-name">${epName}</span>
+          ${resHtml}
+        </div>
+        <span class="ep-icon">${epData?.is_locked ? '🔒' : '▶'}</span>
+      </div>`;
+  });
+
+  document.getElementById('ep-list').innerHTML = html;
 }
 
-// ABRIR CONTROL DE PUNTOS
+/* ═══════════════════════════════════════════════
+   SCORING
+═══════════════════════════════════════════════ */
 async function openScore(key, name) {
-    currentKey = key;
-    document.getElementById('ep-name').innerText = name;
+  currentKey = key;
+  document.getElementById('ep-display-name').innerText = name;
 
-    const targetUser = user === 'franco' ? 'jess' : 'franco';
-    document.getElementById('target').innerText = targetUser.toUpperCase();
+  const other = user === 'franco' ? 'jess' : 'franco';
+  document.getElementById('target-name').innerText = other.toUpperCase();
 
-    // Ver si ya existe en memoria, si no, crear base para ese cap
-    let data = globalData.find(d => d.id === key);
-    
-    if (!data) {
-        data = { id: key, franco_pts: 0, jess_pts: 0, is_locked: false };
-        globalData.push(data); // Añadir localmente
-        // Crear en DB sin bloquear la pantalla
-        supa.from('game_state').upsert(data).then(); 
-    }
+  // Marcar cuál card es "mía"
+  document.getElementById('card-franco').classList.toggle('my-card', user === 'franco');
+  document.getElementById('card-jess').classList.toggle('my-card', user === 'jess');
 
-    updatePointUI(data);
-    showView('scoring');
+  document.getElementById('tag-franco').innerText = user === 'franco' ? '← TÚ' : '';
+  document.getElementById('tag-jess').innerText = user === 'jess' ? '← TÚ' : '';
+
+  let data = globalData.find(d => d.id === key);
+  if (!data) {
+    data = { id: key, franco_pts: 0, jess_pts: 0, is_locked: false };
+    globalData.push(data);
+    supa.from('game_state').upsert(data).then();
+  }
+
+  renderScoring(data);
+  showView('scoring');
 }
 
-// ACTUALIZAR PANTALLA DE PUNTOS
-function updatePointUI(data) {
-    const targetUser = user === 'franco' ? 'jess' : 'franco';
-    document.getElementById('pts').innerText = data[`${targetUser}_pts`];
+function renderScoring(data) {
+  // Animación bounce en el número que cambió
+  const pf = document.getElementById('pts-franco');
+  const pj = document.getElementById('pts-jess');
 
-    if (data.is_locked) {
-        document.getElementById('active-ui').style.display = 'none';
-        document.getElementById('locked-ui').style.display = 'block';
-        document.getElementById('result').innerText = `FRANCO ${data.franco_pts} - ${data.jess_pts} JESS`;
-    } else {
-        document.getElementById('active-ui').style.display = 'block';
-        document.getElementById('locked-ui').style.display = 'none';
-    }
+  const oldF = pf.innerText;
+  const oldJ = pj.innerText;
+
+  pf.innerText = data.franco_pts;
+  pj.innerText = data.jess_pts;
+
+  if (String(oldF) !== String(data.franco_pts)) bounce(pf);
+  if (String(oldJ) !== String(data.jess_pts))   bounce(pj);
+
+  if (data.is_locked) {
+    document.getElementById('active-ui').style.display = 'none';
+    const locked = document.getElementById('locked-ui');
+    locked.style.display = 'block';
+    document.getElementById('lock-franco').innerText = data.franco_pts;
+    document.getElementById('lock-jess').innerText   = data.jess_pts;
+
+    const winner = data.franco_pts > data.jess_pts ? 'FRANCO'
+                 : data.jess_pts > data.franco_pts ? 'JESS' : 'EMPATE';
+    const winColor = winner === 'FRANCO' ? 'var(--franco)' : winner === 'JESS' ? 'var(--jess)' : 'var(--gold)';
+    document.getElementById('lock-winner').innerHTML =
+      winner === 'EMPATE'
+        ? '<b style="color:var(--gold)">🤝 EMPATE</b>'
+        : `Ganó <b style="color:${winColor}">${winner} 🏆</b>`;
+  } else {
+    document.getElementById('active-ui').style.display = 'block';
+    document.getElementById('locked-ui').style.display = 'none';
+  }
 }
 
-// SUMAR/RESTAR PUNTOS
+function bounce(el) {
+  el.classList.remove('bounce');
+  void el.offsetWidth;
+  el.classList.add('bounce');
+  el.addEventListener('animationend', () => el.classList.remove('bounce'), { once: true });
+}
+
+/* ═══════════════════════════════════════════════
+   CONTROLES
+═══════════════════════════════════════════════ */
 async function change(v) {
-    let n = parseInt(document.getElementById('pts').innerText);
-    n += v;
-    document.getElementById('pts').innerText = n; // Cambio visual instantáneo
+  const other = user === 'franco' ? 'jess' : 'franco';
+  let data = globalData.find(d => d.id === currentKey);
+  if (!data || data.is_locked) return;
 
-    const targetUser = user === 'franco' ? 'jess' : 'franco';
-    
-    // Rescatar data actual
-    let data = globalData.find(d => d.id === currentKey);
-    if (!data) data = { id: currentKey, franco_pts: 0, jess_pts: 0, is_locked: false };
-    
-    data[`${targetUser}_pts`] = n;
+  const newVal = Math.max(0, (data[`${other}_pts`] || 0) + v);
+  data[`${other}_pts`] = newVal;
 
-    // Actualizar DB. El tiempo real le avisará a la otra persona sola
-    await supa.from('game_state').upsert({
-        id: currentKey,
-        franco_pts: data.franco_pts,
-        jess_pts: data.jess_pts,
-        is_locked: data.is_locked
-    });
+  // Update visual instantly
+  renderScoring(data);
+
+  // Persist
+  await supa.from('game_state').upsert({
+    id: currentKey,
+    franco_pts: data.franco_pts,
+    jess_pts: data.jess_pts,
+    is_locked: data.is_locked
+  });
 }
 
-// BLOQUEAR CAPÍTULO
 async function lock() {
-    if(confirm("¿Seguros que quieren terminar este capítulo?")) {
-        await supa.from('game_state')
-            .update({ is_locked: true })
-            .eq('id', currentKey);
-
-        // Actualizamos nosotros mismos, el Tiempo Real le avisa al otro
-        let data = globalData.find(d => d.id === currentKey);
-        data.is_locked = true;
-        updatePointUI(data);
-    }
+  if (!confirm('¿Seguro que quieren terminar este capítulo?')) return;
+  let data = globalData.find(d => d.id === currentKey);
+  if (!data) return;
+  data.is_locked = true;
+  renderScoring(data);
+  await supa.from('game_state').update({ is_locked: true }).eq('id', currentKey);
 }
 
-// NAVEGACIÓN
+/* ═══════════════════════════════════════════════
+   NAVEGACIÓN
+═══════════════════════════════════════════════ */
 function showView(id) {
-    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-    document.getElementById(id).classList.add('active');
-    window.scrollTo(0, 0);
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 </script>
 
