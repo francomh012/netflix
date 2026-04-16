@@ -868,7 +868,7 @@ async function change(v) {
   let data = globalData.find(d => d.id === currentKey);
   if (!data || data.is_locked) return;
 
-  const newVal = Math.max(0, (data[`${other}_pts`] || 0) + v);
+  const newVal = Math.max(-50, (data[`${other}_pts`] || 0) + v);
   data[`${other}_pts`] = newVal;
 
   renderScoring(data);
